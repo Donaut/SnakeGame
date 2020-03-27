@@ -20,11 +20,8 @@ namespace SnakeGame
                 var game = new SnakeGame(24, 40);
                 game.Run(8);
 
-                //System.Threading.Thread.Sleep(5000);
-                //Console.Clear();
-                //Console.WriteLine("Meghaltál:(");
-                //Console.WriteLine($"Elért ponntszámod: {points}");
-                //System.Threading.Thread.Sleep(3000);
+                System.Threading.Thread.Sleep(5000);
+                Console.Clear();
 
                 Console.WriteLine("Újra akarod kezdeni? y/n");
                 var input = Console.ReadKey(true);
