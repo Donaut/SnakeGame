@@ -323,30 +323,5 @@ namespace SnakeGame
                 return false;
             }
         }
-
-        private class Food
-        {
-            private int width;
-            private int height;
-            public Tuple<int, int> Position { get; private set; }
-
-            public Food(int width, int height)
-            {
-                this.width = width;
-                this.height = height;
-            }
-
-            public Tuple<int, int> GenerateFood()
-            {
-                Random rnd = new Random();
-                var x = rnd.Next(0, width + 1);
-                var y = rnd.Next(0, height + 1);
-
-
-                this.Position = (X: x, Y: y).ToTuple();
-
-                return Position;
-            }
-        }
     }
 }
