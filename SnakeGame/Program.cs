@@ -23,6 +23,8 @@ namespace SnakeGame
                 System.Threading.Thread.Sleep(5000);
                 Console.Clear();
 
+                Console.WriteLine($"Elért pontszámod: {game.Points}");
+
                 Console.WriteLine("Újra akarod kezdeni? y/n");
                 var input = Console.ReadKey(true);
                 if (input.Key == ConsoleKey.Y)

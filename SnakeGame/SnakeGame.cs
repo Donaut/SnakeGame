@@ -4,18 +4,25 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SnakeGame;
 
 namespace SnakeGame
 {
     public class SnakeGame
     {
+        public int Points { get; private set; }
         enum Direction { Left, Right, Up, Down }
 
         char[,] map;
        
         List<BodyParts> snake = new List<BodyParts>();
+
+        Tuple<int, int> food;
+
         bool isDead;
 
+        int width;
+        int height;
         /// <summary>
         /// Creat the default game.
         /// </summary>
@@ -23,8 +30,10 @@ namespace SnakeGame
         /// <param name="height">The height of the map</param>
         public SnakeGame(int width = 24, int height = 40)
         {
+            this.width = width;
+            this.height = height;
             map = new char[width, height];
-            snake = new List<BodyParts>();
+            GenerateFood();
         }
 
         /// <summary>
@@ -33,6 +42,7 @@ namespace SnakeGame
         /// <param name="FPS"></param>
         public void Run(int FPS = 8)
         {
+            
             for (int i = 0; i < 14; ++i)
             {
                 snake.Add(new BodyParts(10, 20 + i));
@@ -43,6 +53,8 @@ namespace SnakeGame
             timer.Start();
             while (true)
             {
+                Console.Title = $"Points : {Points}";
+
                 if (timer.Elapsed.Milliseconds < 1000 / FPS)
                     continue;
 
@@ -62,6 +74,7 @@ namespace SnakeGame
         }
 
         Direction PrevDiredction, direction;
+        int elapsedMilliSeconds = 0;
         void Update(int elapsedMilliseconds)
         {
             ConsoleKeyInfo key = default;
@@ -85,6 +98,8 @@ namespace SnakeGame
                     direction = Direction.Right;
                     break;
             }
+
+            BodyParts tail = snake[snake.Count - 1];
 
             // Remove tail from body
             snake.RemoveAt(snake.Count - 1);
@@ -114,12 +129,18 @@ namespace SnakeGame
             // Add the new Head to The List.
             snake.Insert(0, newPosition);
 
+            this.elapsedMilliSeconds += elapsedMilliseconds;
+            if (this.elapsedMilliSeconds >= 5000)
+            {
+                food = GenerateFood();
+                this.elapsedMilliSeconds = 0;
+            }
+
             // Check if the Snake collide with himself.
             if (BodyParts.FindDuplicates(snake))
             {
                 isDead = true;
             }
-
 
             //Checks if the snake goes out of the world.
             BodyParts head = snake[0];
@@ -127,6 +148,16 @@ namespace SnakeGame
             {
                 isDead = true;
             }
+
+            if (head.X == food.Item1 && head.Y == food.Item2)
+            {
+                Points++;
+                snake.Add(tail);
+                food = GenerateFood();
+                this.elapsedMilliSeconds = 0;
+            }
+
+            
 
             PrevDiredction = direction;
 
@@ -159,6 +190,9 @@ namespace SnakeGame
                 }
             }
 
+            map[food.Item1, food.Item2] = '@';
+
+            
 
             // Never use the Console.Clear() method because it causes flickering.
             Console.SetCursorPosition(0, 0);
@@ -171,6 +205,30 @@ namespace SnakeGame
                 Console.WriteLine();
             }
 
+        }
+
+
+        Tuple<int, int> GenerateFood()
+        {
+            // What if the food is spwan inside the snake?
+            // We loop until it dosen't.
+            while (true)
+            {
+                Random rnd = new Random();
+                int x = rnd.Next(0, width);
+                int y = rnd.Next(0, height);
+                food = (x, y).ToTuple();
+
+                foreach (var item in snake)
+                {
+                    if (item.X == food.Item1 && item.Y == food.Item2)
+                    {
+                        continue;
+                    }
+                }
+
+                return food;
+            }
         }
 
         /// <summary>
@@ -263,6 +321,31 @@ namespace SnakeGame
                 }
 
                 return false;
+            }
+        }
+
+        private class Food
+        {
+            private int width;
+            private int height;
+            public Tuple<int, int> Position { get; private set; }
+
+            public Food(int width, int height)
+            {
+                this.width = width;
+                this.height = height;
+            }
+
+            public Tuple<int, int> GenerateFood()
+            {
+                Random rnd = new Random();
+                var x = rnd.Next(0, width + 1);
+                var y = rnd.Next(0, height + 1);
+
+
+                this.Position = (X: x, Y: y).ToTuple();
+
+                return Position;
             }
         }
     }
