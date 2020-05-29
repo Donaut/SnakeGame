@@ -15,9 +15,9 @@ namespace SnakeGame
 
         char[,] map;
        
-        List<BodyParts> snake = new List<BodyParts>();
+        List<SnakeBodyParts> snake = new List<SnakeBodyParts>();
 
-        Tuple<int, int> food;
+        Food food;
 
         bool isDead;
 
@@ -33,7 +33,6 @@ namespace SnakeGame
             this.width = width;
             this.height = height;
             map = new char[width, height];
-            GenerateFood();
         }
 
         /// <summary>
@@ -42,19 +41,18 @@ namespace SnakeGame
         /// <param name="FPS"></param>
         public void Run(int FPS = 8)
         {
-            
+            //Creat The Snake Default Body
             for (int i = 0; i < 14; ++i)
             {
-                snake.Add(new BodyParts(10, 20 + i));
+                snake.Add(new SnakeBodyParts(10, 20 + i));
             }
 
+            food = GenerateFood();
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
             while (true)
             {
-                Console.Title = $"Points : {Points}";
-
                 if (timer.Elapsed.Milliseconds < 1000 / FPS)
                     continue;
 
@@ -74,14 +72,16 @@ namespace SnakeGame
         }
 
         Direction PrevDiredction, direction;
-        int elapsedMilliSeconds = 0;
+        int elapsedMilliSeconds;
+
+        #region UpdateAndDraw
         void Update(int elapsedMilliseconds)
         {
+            Console.Title = $"Points : {Points}";
+
             ConsoleKeyInfo key = default;
             if (Console.KeyAvailable)
                 key = Console.ReadKey(true);
-
-            
 
             switch (key.Key)
             {
@@ -99,16 +99,17 @@ namespace SnakeGame
                     break;
             }
 
-            BodyParts tail = snake[snake.Count - 1];
+            // Get The Taile Position before we delet it.
+            SnakeBodyParts tail = snake[snake.Count - 1];
 
             // Remove tail from body
             snake.RemoveAt(snake.Count - 1);
 
             // Get head position
-            BodyParts next = snake[0];
+            SnakeBodyParts next = snake[0];
 
             // Calculate the next Head Position
-            BodyParts newPosition = CalculateNextPosition(next, direction);
+            SnakeBodyParts newPosition = CalculateNextPosition(next, direction);
 
             // We modify the head position so when we go backwards we hit the second object in the list.
             // Example 
@@ -129,6 +130,7 @@ namespace SnakeGame
             // Add the new Head to The List.
             snake.Insert(0, newPosition);
 
+            // If the food is older than 5 five second we creat a new one.
             this.elapsedMilliSeconds += elapsedMilliseconds;
             if (this.elapsedMilliSeconds >= 5000)
             {
@@ -137,19 +139,19 @@ namespace SnakeGame
             }
 
             // Check if the Snake collide with himself.
-            if (BodyParts.FindDuplicates(snake))
+            if (SnakeBodyParts.FindDuplicates(snake))
             {
                 isDead = true;
             }
 
             //Checks if the snake goes out of the world.
-            BodyParts head = snake[0];
+            SnakeBodyParts head = snake[0];
             if (head.X < 0 || head.X >= map.GetLength(0) || head.Y < 0 || head.Y >= map.GetLength(1))
             {
                 isDead = true;
             }
 
-            if (head.X == food.Item1 && head.Y == food.Item2)
+            if (head.X == food.X && head.Y == food.Y)
             {
                 Points++;
                 snake.Add(tail);
@@ -165,6 +167,7 @@ namespace SnakeGame
 
         void Draw()
         {
+            // Clearing the map.
             for (int i = 0; i < map.GetLength(0); i++)
             {
                 for (int j = 0; j < map.GetLength(1); j++)
@@ -173,6 +176,7 @@ namespace SnakeGame
                 }
             }
 
+            //Drawing the snake.
             for (int i = 0; i < snake.Count; i++)
             {
                 var item = snake.ToList()[i];
@@ -190,7 +194,8 @@ namespace SnakeGame
                 }
             }
 
-            map[food.Item1, food.Item2] = '@';
+            //Drawing the food
+            map[food.X, food.Y] = '@';
 
             
 
@@ -206,9 +211,9 @@ namespace SnakeGame
             }
 
         }
+        #endregion
 
-
-        Tuple<int, int> GenerateFood()
+        Food GenerateFood()
         {
             // What if the food is spwan inside the snake?
             // We loop until it dosen't.
@@ -217,17 +222,14 @@ namespace SnakeGame
                 Random rnd = new Random();
                 int x = rnd.Next(0, width);
                 int y = rnd.Next(0, height);
-                food = (x, y).ToTuple();
+                var localFood = new Food(x, y);
 
-                foreach (var item in snake)
-                {
-                    if (item.X == food.Item1 && item.Y == food.Item2)
-                    {
-                        continue;
-                    }
-                }
+                if (snake.ContainsFood(localFood))
+                    continue;
 
-                return food;
+
+
+                return localFood;
             }
         }
 
@@ -237,91 +239,23 @@ namespace SnakeGame
         /// <param name="next">The snake head</param>
         /// <param name="direction">The direction you want to move.</param>
         /// <returns></returns>
-        BodyParts CalculateNextPosition(BodyParts next, Direction direction)
+        SnakeBodyParts CalculateNextPosition(SnakeBodyParts next, Direction direction)
         {
             // Calculate where the head should be next based on the snake's direction
             if (direction == Direction.Left)
-                next = new BodyParts(next.X, next.Y - 1);
+                next = new SnakeBodyParts(next.X, next.Y - 1);
             if (direction == Direction.Right)
-                next = new BodyParts(next.X, next.Y + 1);
+                next = new SnakeBodyParts(next.X, next.Y + 1);
             if (direction == Direction.Up)
-                next = new BodyParts(next.X - 1, next.Y);
+                next = new SnakeBodyParts(next.X - 1, next.Y);
             if (direction == Direction.Down)
-                next = new BodyParts(next.X + 1, next.Y);
+                next = new SnakeBodyParts(next.X + 1, next.Y);
 
             return next;
         }
 
-        /// <summary>
-        /// Represents the snake body parts.
-        /// </summary>
-        class BodyParts : IEquatable<BodyParts>
-        {
-            /// <summary>
-            /// The X coordinate of the body part
-            /// </summary>
-            public int X { get; private set; }
+        
 
-            /// <summary>
-            /// The Y coordinate of the body part
-            /// </summary>
-            public int Y { get; private set; }
-
-            public BodyParts(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-
-            /// <summary>
-            /// Checks that the two objects have the same X and Y Coordinates.
-            /// </summary>
-            /// <param name="other">The Other Points Object</param>
-            /// <returns></returns>
-            public bool Equals(BodyParts other)
-            {
-                if (this.X == other.X && this.Y == other.Y)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-
-            /// <summary>
-            /// Checks if the object is in the List.
-            /// </summary>
-            /// <param name="points">The list.</param>
-            /// <returns></returns>
-            public bool Contains(IEnumerable<BodyParts> points)
-            {
-                foreach (var item in points)
-                {
-                    if (this.Equals(item))
-                        return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Checks the list to find duplicates.
-            /// </summary>
-            /// <param name="points">The list</param>
-            /// <returns></returns>
-            public static bool FindDuplicates(List<BodyParts> points)
-            {
-                for (int i = 0; i < points.Count; i++)
-                {
-                    for (int j = i + 1; j < points.Count; j++)
-                    {
-                        if (points[i].Equals(points[j])) return true;
-                    }
-                }
-
-                return false;
-            }
-        }
+        
     }
 }
