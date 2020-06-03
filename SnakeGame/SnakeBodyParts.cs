@@ -71,22 +71,6 @@ namespace SnakeGame
 
             return false;
         }
-        /// <summary>
-        /// Checks the list to find duplicates.
-        /// </summary>
-        /// <param name="points">The list</param>
-        /// <returns></returns>
-        public static bool FindDuplicates(List<SnakeBodyParts> points)
-        {
-            for (int i = 0; i < points.Count; i++)
-            {
-                for (int j = i + 1; j < points.Count; j++)
-                {
-                    if (points[i].Equals(points[j])) return true;
-                }
-            }
-
-            return false;
-        }
+        
     }
 }

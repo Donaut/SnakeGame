@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using SnakeGame;
 
 namespace SnakeGame
@@ -14,7 +15,7 @@ namespace SnakeGame
         enum Direction { Left, Right, Up, Down }
 
         char[,] map;
-       
+
         List<SnakeBodyParts> snake = new List<SnakeBodyParts>();
 
         Food food;
@@ -28,7 +29,7 @@ namespace SnakeGame
         /// </summary>
         /// <param name="width">The width of the map</param>
         /// <param name="height">The height of the map</param>
-        public SnakeGame(int width = 24, int height = 40)
+        public SnakeGame(int width = 24, int height = 70)
         {
             this.width = width;
             this.height = height;
@@ -77,7 +78,7 @@ namespace SnakeGame
         #region UpdateAndDraw
         void Update(int elapsedMilliseconds)
         {
-            Console.Title = $"Points : {Points}";
+            Console.Title = $"Points : {Points.ToString()}";
 
             ConsoleKeyInfo key = default;
             if (Console.KeyAvailable)
@@ -111,14 +112,14 @@ namespace SnakeGame
             // Calculate the next Head Position
             SnakeBodyParts newPosition = CalculateNextPosition(next, direction);
 
-            // We modify the head position so when we go backwards we hit the second object in the list.
+            // We modify the head position so when we go backwards we hit an object in the list.
             // Example 
             // HeadPosition: x:10 y:10
             // SnakeParts  : x:11 y:10
             // SnakeParts  : x:12 y:10
-            // If we move backwards we collide with the second snake parts not with the head.
+            // If we move backwards we collide with the snake parts.
             // Prevents the player from going backward
-            if (snake[1].Equals(newPosition))
+            if (snake.IsContainDuplicates(newPosition))
             {
                 newPosition = CalculateNextPosition(next, PrevDiredction);
                 direction = PrevDiredction;
@@ -139,7 +140,7 @@ namespace SnakeGame
             }
 
             // Check if the Snake collide with himself.
-            if (SnakeBodyParts.FindDuplicates(snake))
+            if (snake.IsContainDuplicates())
             {
                 isDead = true;
             }
@@ -159,7 +160,7 @@ namespace SnakeGame
                 this.elapsedMilliSeconds = 0;
             }
 
-            
+
 
             PrevDiredction = direction;
 
@@ -167,7 +168,35 @@ namespace SnakeGame
 
         void Draw()
         {
-            // Clearing the map.
+            // IF we rly want to speed up thing we cane use pointers.
+            //fixed (char* pointer = map)
+            //{
+            //    // Clearing the map.
+            //    for (int i = 0; i < map.GetLength(0) * map.GetLength(1); i++)
+            //    {
+            //        pointer[i] = '.';
+            //    }
+
+            //    //Drawing the snake.
+            //    for (int i = 0; i < snake.Count; i++)
+            //    {
+            //        var item = snake[i];
+
+            //        pointer[item.X * 40 + item.Y] = 'O';
+
+            //        if (i == 0)
+            //        {
+            //            pointer[item.X * 40 + item.Y] = 'I';
+            //        }
+
+            //        if (i == snake.Count - 1)
+            //        {
+            //            pointer[item.X * 40 + item.Y] = '#';
+            //        }
+            //    }
+            //}
+
+            //// Clearing the map.
             for (int i = 0; i < map.GetLength(0); i++)
             {
                 for (int j = 0; j < map.GetLength(1); j++)
@@ -179,7 +208,7 @@ namespace SnakeGame
             //Drawing the snake.
             for (int i = 0; i < snake.Count; i++)
             {
-                var item = snake.ToList()[i];
+                var item = snake[i];
 
                 map[item.X, item.Y] = 'O';
 
@@ -194,10 +223,10 @@ namespace SnakeGame
                 }
             }
 
+
             //Drawing the food
             map[food.X, food.Y] = '@';
 
-            
 
             // Never use the Console.Clear() method because it causes flickering.
             Console.SetCursorPosition(0, 0);
@@ -224,7 +253,7 @@ namespace SnakeGame
                 int y = rnd.Next(0, height);
                 var localFood = new Food(x, y);
 
-                if (snake.ContainsFood(localFood))
+                if (snake.IsContainsFood(localFood))
                     continue;
 
 
@@ -254,8 +283,8 @@ namespace SnakeGame
             return next;
         }
 
-        
 
-        
+
+
     }
 }

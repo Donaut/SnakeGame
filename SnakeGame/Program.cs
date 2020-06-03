@@ -17,7 +17,7 @@ namespace SnakeGame
             Console.ReadLine();
             while (true)
             {
-                var game = new SnakeGame(24, 40);
+                var game = new SnakeGame();
                 game.Run(8);
 
                 System.Threading.Thread.Sleep(5000);
