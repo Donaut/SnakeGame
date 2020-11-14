@@ -14,7 +14,7 @@ namespace SnakeGame
         public int Points { get; private set; }
         enum Direction { Left, Right, Up, Down }
 
-        char[,] map;
+        char[,] MAP;
 
         List<SnakeBodyParts> snake = new List<SnakeBodyParts>();
 
@@ -29,11 +29,11 @@ namespace SnakeGame
         /// </summary>
         /// <param name="width">The width of the map</param>
         /// <param name="height">The height of the map</param>
-        public SnakeGame(int width = 24, int height = 70)
+        public SnakeGame(int width = 50, int height = 20)
         {
             this.width = width;
             this.height = height;
-            map = new char[width, height];
+            MAP = new char[width, height];
         }
 
         /// <summary>
@@ -43,9 +43,9 @@ namespace SnakeGame
         public void Run(int FPS = 8)
         {
             //Creat The Snake Default Body
-            for (int i = 0; i < 14; ++i)
+            for (int i = 0; i < 5; ++i)
             {
-                snake.Add(new SnakeBodyParts(10, 20 + i));
+                snake.Add(new SnakeBodyParts(10, 12 + i));
             }
 
             food = GenerateFood();
@@ -123,10 +123,6 @@ namespace SnakeGame
             {
                 newPosition = CalculateNextPosition(next, PrevDiredction);
                 direction = PrevDiredction;
-
-#if DEBUG
-                Console.ReadLine();
-#endif
             }
             // Add the new Head to The List.
             snake.Insert(0, newPosition);
@@ -147,7 +143,7 @@ namespace SnakeGame
 
             //Checks if the snake goes out of the world.
             SnakeBodyParts head = snake[0];
-            if (head.X < 0 || head.X >= map.GetLength(0) || head.Y < 0 || head.Y >= map.GetLength(1))
+            if (head.X < 0 || head.X >= MAP.GetLength(0) || head.Y < 0 || head.Y >= MAP.GetLength(1))
             {
                 isDead = true;
             }
@@ -196,49 +192,44 @@ namespace SnakeGame
             //    }
             //}
 
-            //// Clearing the map.
-            for (int i = 0; i < map.GetLength(0); i++)
+
+            for (int Y = 0; Y < MAP.GetLength(1); Y++)
             {
-                for (int j = 0; j < map.GetLength(1); j++)
+                for (int X = 0; X < MAP.GetLength(0); X++)
                 {
-                    map[i, j] = '.';
+                    MAP[X, Y] = '.';
                 }
             }
 
-            //Drawing the snake.
+            ////Drawing the snake.
             for (int i = 0; i < snake.Count; i++)
             {
                 var item = snake[i];
 
-                map[item.X, item.Y] = 'O';
+                MAP[item.X, item.Y] = 'O';
 
                 if (i == 0)
                 {
-                    map[item.X, item.Y] = 'I';
+                    MAP[item.X, item.Y] = 'I';
                 }
 
                 if (i == snake.Count - 1)
                 {
-                    map[item.X, item.Y] = '#';
+                    MAP[item.X, item.Y] = '#';
                 }
             }
 
+            MAP[food.X, food.Y] = '@';
 
-            //Drawing the food
-            map[food.X, food.Y] = '@';
-
-
-            // Never use the Console.Clear() method because it causes flickering.
             Console.SetCursorPosition(0, 0);
-            for (int i = 0; i < map.GetLength(0); i++)
+            for (int y = 0; y < MAP.GetLength(1); y++)
             {
-                for (int j = 0; j < map.GetLength(1); j++)
+                for (int x = 0; x < MAP.GetLength(0); x++)
                 {
-                    Console.Write(map[i, j]);
+                    Console.Write(MAP[x, y]);
                 }
                 Console.WriteLine();
-            }
-
+            }  
         }
         #endregion
 
@@ -256,8 +247,6 @@ namespace SnakeGame
                 if (snake.IsContainsFood(localFood))
                     continue;
 
-
-
                 return localFood;
             }
         }
@@ -272,13 +261,13 @@ namespace SnakeGame
         {
             // Calculate where the head should be next based on the snake's direction
             if (direction == Direction.Left)
-                next = new SnakeBodyParts(next.X, next.Y - 1);
-            if (direction == Direction.Right)
-                next = new SnakeBodyParts(next.X, next.Y + 1);
-            if (direction == Direction.Up)
                 next = new SnakeBodyParts(next.X - 1, next.Y);
-            if (direction == Direction.Down)
+            if (direction == Direction.Right)
                 next = new SnakeBodyParts(next.X + 1, next.Y);
+            if (direction == Direction.Up)
+                next = new SnakeBodyParts(next.X, next.Y - 1);
+            if (direction == Direction.Down)
+                next = new SnakeBodyParts(next.X, next.Y + 1);
 
             return next;
         }
