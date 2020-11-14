@@ -52,24 +52,28 @@ namespace SnakeGame
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
+            // Usualy the elapsedMillisecond used to multiply some value. Evrything multiplied by 1 is result in the origianl valu
+            int elapsedMilliseconds = 1;
             while (true)
             {
-                if (timer.Elapsed.Milliseconds < 1000 / FPS)
-                    continue;
-
-                int elapsedMilliseconds = timer.Elapsed.Milliseconds;
-                timer.Restart();
-
                 Update(elapsedMilliseconds);
 
                 if (isDead)
                     break;
 
                 Draw();
+
+                // Logic for the FPS control
+                while (true)
+                {
+                    if (timer.Elapsed.Milliseconds < 1000 / FPS)
+                        continue;
+
+                    elapsedMilliseconds = timer.Elapsed.Milliseconds;
+                    timer.Restart();
+                    break;
+                }
             }
-
-            // The Snake Is Dead.
-
         }
 
         Direction PrevDiredction, direction;
@@ -156,10 +160,7 @@ namespace SnakeGame
                 this.elapsedMilliSeconds = 0;
             }
 
-
-
             PrevDiredction = direction;
-
         }
 
         unsafe void Draw()
@@ -206,44 +207,46 @@ namespace SnakeGame
             //    }
             //}
 
+            // Clearing the map
+            for (int Y = 0; Y < MAP.GetLength(1); Y++)
+            {
+                for (int X = 0; X < MAP.GetLength(0); X++)
+                {
+                    MAP[X, Y] = '.';
+                }
+            }
 
-            //for (int Y = 0; Y < MAP.GetLength(1); Y++)
-            //{
-            //    for (int X = 0; X < MAP.GetLength(0); X++)
-            //    {
-            //        MAP[X, Y] = '.';
-            //    }
-            //}
+            ////Drawing the snake.
+            for (int i = 0; i < snake.Count; i++)
+            {
+                var item = snake[i];
 
-            //////Drawing the snake.
-            //for (int i = 0; i < snake.Count; i++)
-            //{
-            //    var item = snake[i];
+                MAP[item.X, item.Y] = 'O';
 
-            //    MAP[item.X, item.Y] = 'O';
+                if (i == 0)
+                {
+                    MAP[item.X, item.Y] = 'I';
+                }
 
-            //    if (i == 0)
-            //    {
-            //        MAP[item.X, item.Y] = 'I';
-            //    }
+                if (i == snake.Count - 1)
+                {
+                    MAP[item.X, item.Y] = '#';
+                }
+            }
 
-            //    if (i == snake.Count - 1)
-            //    {
-            //        MAP[item.X, item.Y] = '#';
-            //    }
-            //}
+            // Drawing the food
+            MAP[food.X, food.Y] = '@';
 
-            //MAP[food.X, food.Y] = '@';
-
-            //Console.SetCursorPosition(0, 0);
-            //for (int y = 0; y < MAP.GetLength(1); y++)
-            //{
-            //    for (int x = 0; x < MAP.GetLength(0); x++)
-            //    {
-            //        Console.Write(MAP[x, y]);
-            //    }
-            //    Console.WriteLine();
-            //}  
+            // And finally drawing the updated whole map
+            Console.SetCursorPosition(0, 0);
+            for (int y = 0; y < MAP.GetLength(1); y++)
+            {
+                for (int x = 0; x < MAP.GetLength(0); x++)
+                {
+                    Console.Write(MAP[x, y]);
+                }
+                Console.WriteLine();
+            }
         }
         #endregion
 
