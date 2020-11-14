@@ -162,13 +162,13 @@ namespace SnakeGame
 
         }
 
-        void Draw()
+        unsafe void Draw()
         {
-            // IF we rly want to speed up thing we cane use pointers.
-            //fixed (char* pointer = map)
+            // raw pointers to make more afficient.
+            //fixed (char* pointer = MAP)
             //{
             //    // Clearing the map.
-            //    for (int i = 0; i < map.GetLength(0) * map.GetLength(1); i++)
+            //    for (int i = 0; i < MAP.GetLength(0) * MAP.GetLength(1); i++)
             //    {
             //        pointer[i] = '.';
             //    }
@@ -178,58 +178,72 @@ namespace SnakeGame
             //    {
             //        var item = snake[i];
 
-            //        pointer[item.X * 40 + item.Y] = 'O';
+            //        pointer[item.X * height + item.Y] = 'O';
 
             //        if (i == 0)
             //        {
-            //            pointer[item.X * 40 + item.Y] = 'I';
+            //            pointer[item.X * height + item.Y] = 'I';
             //        }
 
             //        if (i == snake.Count - 1)
             //        {
-            //            pointer[item.X * 40 + item.Y] = '#';
+            //            pointer[item.X * height + item.Y] = '#';
             //        }
+            //    }
+
+            //    // Drawing the Cake
+            //    pointer[food.X * height + food.Y] = '@';
+
+            //    //Drawing The Map
+            //    Console.SetCursorPosition(0, 0);
+            //    for (int y = 0; y < MAP.GetLength(1); y++)
+            //    {
+            //        for (int x = 0; x < MAP.GetLength(0); x++)
+            //        {
+            //            Console.Write(pointer[x * height + y]);
+            //        }
+            //        Console.WriteLine();
             //    }
             //}
 
 
-            for (int Y = 0; Y < MAP.GetLength(1); Y++)
-            {
-                for (int X = 0; X < MAP.GetLength(0); X++)
-                {
-                    MAP[X, Y] = '.';
-                }
-            }
+            //for (int Y = 0; Y < MAP.GetLength(1); Y++)
+            //{
+            //    for (int X = 0; X < MAP.GetLength(0); X++)
+            //    {
+            //        MAP[X, Y] = '.';
+            //    }
+            //}
 
-            ////Drawing the snake.
-            for (int i = 0; i < snake.Count; i++)
-            {
-                var item = snake[i];
+            //////Drawing the snake.
+            //for (int i = 0; i < snake.Count; i++)
+            //{
+            //    var item = snake[i];
 
-                MAP[item.X, item.Y] = 'O';
+            //    MAP[item.X, item.Y] = 'O';
 
-                if (i == 0)
-                {
-                    MAP[item.X, item.Y] = 'I';
-                }
+            //    if (i == 0)
+            //    {
+            //        MAP[item.X, item.Y] = 'I';
+            //    }
 
-                if (i == snake.Count - 1)
-                {
-                    MAP[item.X, item.Y] = '#';
-                }
-            }
+            //    if (i == snake.Count - 1)
+            //    {
+            //        MAP[item.X, item.Y] = '#';
+            //    }
+            //}
 
-            MAP[food.X, food.Y] = '@';
+            //MAP[food.X, food.Y] = '@';
 
-            Console.SetCursorPosition(0, 0);
-            for (int y = 0; y < MAP.GetLength(1); y++)
-            {
-                for (int x = 0; x < MAP.GetLength(0); x++)
-                {
-                    Console.Write(MAP[x, y]);
-                }
-                Console.WriteLine();
-            }  
+            //Console.SetCursorPosition(0, 0);
+            //for (int y = 0; y < MAP.GetLength(1); y++)
+            //{
+            //    for (int x = 0; x < MAP.GetLength(0); x++)
+            //    {
+            //        Console.Write(MAP[x, y]);
+            //    }
+            //    Console.WriteLine();
+            //}  
         }
         #endregion
 
