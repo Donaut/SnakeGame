@@ -12,7 +12,6 @@ namespace SnakeGame
     {
         static void Main(string[] args)
         {
-
             Console.WriteLine("Nyomj egy ENTERT a játékhoz.");
             Console.ReadLine();
             while (true)
@@ -25,20 +24,9 @@ namespace SnakeGame
 
                 Console.WriteLine($"Elért pontszámod: {game.Points}");
 
-                Console.WriteLine("Újra akarod kezdeni? y/n");
-                var input = Console.ReadKey(true);
-                if (input.Key == ConsoleKey.Y)
-                {
-                    continue;
-                }
-                if (input.Key == ConsoleKey.N)
-                {
-                    break;
-                }
+                Console.WriteLine("Enter az újrakezdéshez");
+                Console.ReadLine();
             }
-
         }
-
     }
-
 }

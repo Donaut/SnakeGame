@@ -12,18 +12,17 @@ namespace SnakeGame
     public class SnakeGame
     {
         public int Points { get; private set; }
-        enum Direction { Left, Right, Up, Down }
+        private Food food;
 
-        char[,] MAP;
+        private readonly char[,] map;
+        private readonly int width;
+        private readonly int height;
 
-        List<SnakeBodyParts> snake = new List<SnakeBodyParts>();
+        private readonly List<Snake> snake = new List<Snake>();
+        private bool isDead;
 
-        Food food;
-
-        bool isDead;
-
-        int width;
-        int height;
+        Direction previousDiredction, direction;
+        int elapsedMilliSeconds;
         /// <summary>
         /// Creat the default game.
         /// </summary>
@@ -33,7 +32,7 @@ namespace SnakeGame
         {
             this.width = width;
             this.height = height;
-            MAP = new char[width, height];
+            map = new char[width, height];
         }
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace SnakeGame
             //Creat The Snake Default Body
             for (int i = 0; i < 5; ++i)
             {
-                snake.Add(new SnakeBodyParts(10, 12 + i));
+                snake.Add(new Snake(10, 12 + i));
             }
 
             food = GenerateFood();
@@ -56,13 +55,6 @@ namespace SnakeGame
             int elapsedMilliseconds = 1;
             while (true)
             {
-                Update(elapsedMilliseconds);
-
-                if (isDead)
-                    break;
-
-                Draw();
-
                 // Logic for the FPS control
                 while (true)
                 {
@@ -73,11 +65,17 @@ namespace SnakeGame
                     timer.Restart();
                     break;
                 }
+
+                Update(elapsedMilliseconds);
+
+                if (isDead)
+                    break;
+
+                Draw();
+
+                
             }
         }
-
-        Direction PrevDiredction, direction;
-        int elapsedMilliSeconds;
 
         #region UpdateAndDraw
         void Update(int elapsedMilliseconds)
@@ -105,16 +103,16 @@ namespace SnakeGame
             }
 
             // Get The Taile Position before we delet it.
-            SnakeBodyParts tail = snake[snake.Count - 1];
+            Snake tail = snake[snake.Count - 1];
 
             // Remove tail from body
             snake.RemoveAt(snake.Count - 1);
 
             // Get head position
-            SnakeBodyParts next = snake[0];
+            Snake next = snake[0];
 
             // Calculate the next Head Position
-            SnakeBodyParts newPosition = CalculateNextPosition(next, direction);
+            Snake newPosition = CalculateNextPosition(next, direction);
 
             // We modify the head position so when we go backwards we hit an object in the list.
             // Example 
@@ -125,8 +123,8 @@ namespace SnakeGame
             // Prevents the player from going backward
             if (snake.IsContainDuplicates(newPosition))
             {
-                newPosition = CalculateNextPosition(next, PrevDiredction);
-                direction = PrevDiredction;
+                newPosition = CalculateNextPosition(next, previousDiredction);
+                direction = previousDiredction;
             }
             // Add the new Head to The List.
             snake.Insert(0, newPosition);
@@ -146,8 +144,8 @@ namespace SnakeGame
             }
 
             //Checks if the snake goes out of the world.
-            SnakeBodyParts head = snake[0];
-            if (head.X < 0 || head.X >= MAP.GetLength(0) || head.Y < 0 || head.Y >= MAP.GetLength(1))
+            Snake head = snake[0];
+            if (head.X < 0 || head.X >= map.GetLength(0) || head.Y < 0 || head.Y >= map.GetLength(1))
             {
                 isDead = true;
             }
@@ -160,10 +158,10 @@ namespace SnakeGame
                 this.elapsedMilliSeconds = 0;
             }
 
-            PrevDiredction = direction;
+            previousDiredction = direction;
         }
 
-        unsafe void Draw()
+        void Draw()
         {
             // raw pointers to make more afficient.
             //fixed (char* pointer = MAP)
@@ -195,6 +193,7 @@ namespace SnakeGame
             //    // Drawing the Cake
             //    pointer[food.X * height + food.Y] = '@';
 
+                  //TODO: Use stringBuilder here too
             //    //Drawing The Map
             //    Console.SetCursorPosition(0, 0);
             //    for (int y = 0; y < MAP.GetLength(1); y++)
@@ -208,11 +207,11 @@ namespace SnakeGame
             //}
 
             // Clearing the map
-            for (int Y = 0; Y < MAP.GetLength(1); Y++)
+            for (int y = 0; y < map.GetLength(1); y++)
             {
-                for (int X = 0; X < MAP.GetLength(0); X++)
+                for (int x = 0; x < map.GetLength(0); x++)
                 {
-                    MAP[X, Y] = '.';
+                    map[x, y] = '.';
                 }
             }
 
@@ -221,51 +220,45 @@ namespace SnakeGame
             {
                 var item = snake[i];
 
-                MAP[item.X, item.Y] = 'O';
+                map[item.X, item.Y] = 'O';
 
                 if (i == 0)
                 {
-                    MAP[item.X, item.Y] = 'I';
+                    map[item.X, item.Y] = 'I';
                 }
 
                 if (i == snake.Count - 1)
                 {
-                    MAP[item.X, item.Y] = '#';
+                    map[item.X, item.Y] = '#';
                 }
             }
 
             // Drawing the food
-            MAP[food.X, food.Y] = '@';
+            map[food.X, food.Y] = '@';
 
-            // And finally drawing the updated whole map
+            // And finally drawing the updated map
             Console.SetCursorPosition(0, 0);
-            for (int y = 0; y < MAP.GetLength(1); y++)
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int y = 0; y < map.GetLength(1); y++)
             {
-                for (int x = 0; x < MAP.GetLength(0); x++)
+                for (int x = 0; x < map.GetLength(0); x++)
                 {
-                    Console.Write(MAP[x, y]);
+                    stringBuilder.Append(map[x, y]);
                 }
-                Console.WriteLine();
+                stringBuilder.AppendLine();
             }
+            Console.WriteLine(stringBuilder);
+
         }
         #endregion
 
+
         Food GenerateFood()
         {
-            // What if the food is spwan inside the snake?
-            // We loop until it dosen't.
-            while (true)
-            {
-                Random rnd = new Random();
-                int x = rnd.Next(0, width);
-                int y = rnd.Next(0, height);
-                var localFood = new Food(x, y);
-
-                if (snake.IsContainsFood(localFood))
-                    continue;
-
-                return localFood;
-            }
+            var range = Extensions.CreateValidPlaces(width, height, snake);
+            Random rnd = new Random();
+            var position = range.ElementAt(rnd.Next(0, range.Count()));
+            return position;
         }
 
         /// <summary>
@@ -274,23 +267,19 @@ namespace SnakeGame
         /// <param name="next">The snake head</param>
         /// <param name="direction">The direction you want to move.</param>
         /// <returns></returns>
-        SnakeBodyParts CalculateNextPosition(SnakeBodyParts next, Direction direction)
+        Snake CalculateNextPosition(Snake next, Direction direction)
         {
             // Calculate where the head should be next based on the snake's direction
             if (direction == Direction.Left)
-                next = new SnakeBodyParts(next.X - 1, next.Y);
+                next = new Snake(next.X - 1, next.Y);
             if (direction == Direction.Right)
-                next = new SnakeBodyParts(next.X + 1, next.Y);
+                next = new Snake(next.X + 1, next.Y);
             if (direction == Direction.Up)
-                next = new SnakeBodyParts(next.X, next.Y - 1);
+                next = new Snake(next.X, next.Y - 1);
             if (direction == Direction.Down)
-                next = new SnakeBodyParts(next.X, next.Y + 1);
+                next = new Snake(next.X, next.Y + 1);
 
             return next;
         }
-
-
-
-
     }
 }

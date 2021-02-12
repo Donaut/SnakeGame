@@ -59,11 +59,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SnakeListExtensions.cs" />
+    <Compile Include="Direction.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Food.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SnakeBodyParts.cs" />
+    <Compile Include="Snake.cs" />
     <Compile Include="SnakeGame.cs" />
   </ItemGroup>
   <ItemGroup>
