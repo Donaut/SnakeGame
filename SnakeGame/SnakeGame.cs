@@ -33,14 +33,7 @@ namespace SnakeGame
             this.width = width;
             this.height = height;
             map = new char[width, height];
-        }
 
-        /// <summary>
-        /// Start The Game.
-        /// </summary>
-        /// <param name="FPS"></param>
-        public void Run(int FPS = 8)
-        {
             //Creat The Snake Default Body
             for (int i = 0; i < 5; ++i)
             {
@@ -48,20 +41,33 @@ namespace SnakeGame
             }
 
             food = GenerateFood();
+        }
 
+        /// <summary>
+        /// Start The Game.
+        /// </summary>
+        /// <param name="fps"></param>
+        public void Run(int fps = 15)
+        {
+            
             Stopwatch timer = new Stopwatch();
+
             timer.Start();
-            // Usualy the elapsedMillisecond used to multiply some value. Evrything multiplied by 1 is result in the origianl valu
+            System.Threading.Thread.Sleep(0);
+            int costOfThreadSleep = (int)timer.ElapsedMilliseconds;
+            timer.Restart();
+            // Usualy the elapsedMillisecond used to multiply some value. Evrything multiplied by 1 is result in the origianl value
             int elapsedMilliseconds = 1;
+            var fpsInMilliSeconds = 1000 / fps;
             while (true)
             {
                 // Logic for the FPS control
                 while (true)
                 {
-                    if (timer.Elapsed.Milliseconds < 1000 / FPS)
+                    if (timer.ElapsedMilliseconds < fpsInMilliSeconds)
                         continue;
 
-                    elapsedMilliseconds = timer.Elapsed.Milliseconds;
+                    elapsedMilliseconds = (int)timer.ElapsedMilliseconds;
                     timer.Restart();
                     break;
                 }
@@ -73,6 +79,12 @@ namespace SnakeGame
 
                 Draw();
 
+                // Ok so when rendering and updating take less than a fps. We want to wait some time.
+                if (timer.ElapsedMilliseconds < fpsInMilliSeconds)
+                {
+                    var milliSecondToSleep = (int)(fpsInMilliSeconds - timer.ElapsedMilliseconds);
+                    System.Threading.Thread.Sleep(milliSecondToSleep - costOfThreadSleep);
+                }
                 
             }
         }
