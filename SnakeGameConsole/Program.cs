@@ -18,12 +18,16 @@ internal class Program
 
         var previousKeyStates = new List<Directions>(16);
         var currentKeyStates = new List<Directions>(16);
-
-        var game = new Game(20, 20);
-        game.Start();
+        
+        var game = new Game();
+        
 
         //var renderer = new ConsoleRenderer(game.Width, game.Height);
-        var renderer = new ConsoleRenderer2(game.Width, game.Height);
+        var renderer = new ConsoleRenderer(game.Width, game.Height);
+
+        restart:;
+
+        game.Reset();
 
         const double dt = 1 / 60f; // 60 FPS (1 / 60 = 0.01666666)
 
@@ -31,12 +35,9 @@ internal class Program
         var waitingForFirstInput = true;
         var pointsBuffer = new char[32];
 
-        var fps = 0;
-        var fpsFrameTime = 0D;
-
         double currentTime = Stopwatch.GetTimestamp();
         double accumulator = 0.0f;
-        while (true)
+        while (!game.IsDead)
         {
             double newTime = Stopwatch.GetTimestamp();
             double frameTime = (newTime - currentTime) / Stopwatch.Frequency;
@@ -44,30 +45,13 @@ internal class Program
 
             accumulator += frameTime;
 
-            fpsFrameTime += frameTime;
-
-            //Trace.WriteLine(frameTime);
-            if (fpsFrameTime > 1)
-            {
-                //Console.Beep();
-                Trace.WriteLine($"FPS: {fps}, frame time: {frameTime}");
-                fps = 0;
-                fpsFrameTime = 0;
-            }
-
-            // Swap input buffers
+            // Pool input.
             (currentKeyStates, previousKeyStates) = (previousKeyStates, currentKeyStates);
             currentKeyStates.Clear();
 
-            // Pool input.
-            /*
-             * Currently if somebody presses multiple key at once makes it possible that some directions are ignored by the game.
-             * After playing for some time i noticed sometimes this causes uninented directions. 
-             * Im thinking about not reading all the avalible keys and stop when a new pressed key is detected.
-             */
             while (Console.KeyAvailable)
             {
-                var consoleKey = Console.ReadKey(true).Key switch
+                var nextDirection = Console.ReadKey(true).Key switch
                 {
                     ConsoleKey.W or ConsoleKey.UpArrow => Directions.Up,
                     ConsoleKey.D or ConsoleKey.RightArrow => Directions.Right,
@@ -75,21 +59,19 @@ internal class Program
                     ConsoleKey.A or ConsoleKey.LeftArrow => Directions.Left,
                     _ => Directions.None
                 };
-                ;
-                currentKeyStates.Add(consoleKey);
-                waitingForFirstInput = false;
-            }
-
-            // Read the first pressed button 
-            foreach (var nextDirection in currentKeyStates)
-            {
+                
                 if(nextDirection == Directions.None)
                     continue;
 
-                var hasBeenPressed = currentKeyStates.Contains(nextDirection) && !previousKeyStates.Contains(nextDirection);
+                currentKeyStates.Add(nextDirection);
+                waitingForFirstInput = false;
+
+                var hasBeenPressed = !previousKeyStates.Contains(nextDirection); // && currentKeyStates.Contains(consoleKey);
                 if (hasBeenPressed)
                 {
                     direction = nextDirection;
+
+                    // If we find a new key which has been pressed we break out early to avoid consuming uneccessary key presses.
                     break;
                 }
             }
@@ -106,19 +88,21 @@ internal class Program
             
             ConsoleExtensions.SetConsoleTitle(waitingForFirstInput ? "Press a key (W, A, S, D) to start" : pointsBuffer);
 
-            fps++;
             game.DrawConsole(renderer);
         }
+
+        Thread.Sleep(2000);
+        goto restart;
     }
 
-    class ConsoleRenderer2 : IConsoleRenderer
+    class ConsoleRenderer : IConsoleRenderer
     {
         private char[,] _frontBuffer;
         private char[,] _backBuffer;
         private readonly int _width;
         private readonly int _height;
 
-        public ConsoleRenderer2(int width, int height)
+        public ConsoleRenderer(int width, int height)
         {
             _width = width;
             _height = height;
@@ -192,61 +176,6 @@ internal class Program
         private Span<char> AsSpan(char[,] array)
         {
             return MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetArrayDataReference(array)), _width * _height);
-        }
-    }
-
-    [Obsolete()]
-    class ConsoleRenderer : IConsoleRenderer
-    {
-        private char[,] _buffer;
-        private readonly int _width;
-        private readonly int _height;
-
-        public ConsoleRenderer(int width, int height)
-        {
-            _width = width;
-            _height = height;
-            _buffer = new char[height, width];
-        }
-
-        public void BeginDraw()
-        {
-            var buffer = MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetArrayDataReference(_buffer)), _width * _height);
-            buffer.Fill(' ');
-        }
-
-        public void DrawCharacter(int x, int y, char character)
-        {
-            if (x < 0 || x >= _width || y < 0 || y >= _height)
-                return;
-
-            _buffer[y, x] = character;
-        }
-
-        public void EndDraw()
-        {
-            Console.SetCursorPosition(0, 0);
-
-            // Draw top border
-            for (var i = 0; i <= _width + 1; i++)
-                Console.Write('#');
-            Console.Write("\r\n");
-
-            var buffer = MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetArrayDataReference(_buffer)), _width * _height);
-            for (var y = 0; y < _height; y++)
-            {
-                Console.Write('#'); // Draw left border
-                for (var x = 0; x < _width; x++)
-                {
-                    Console.Write(buffer[y * _width + x]);
-                }
-                Console.Write('#'); // Draw right border
-                Console.Write("\r\n");
-            }
-
-            // Draw bottom border
-            for (var i = 0; i <= _width + 1; i++)
-                Console.Write('#');
         }
     }
 }

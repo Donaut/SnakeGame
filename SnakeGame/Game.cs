@@ -31,9 +31,9 @@ namespace SnakeGameCore
         /// </summary>
         public int Height => _height;
 
-        public int Points { get; private set; }
+        public int Points { get; protected set; }
 
-        public bool IsDead { get; private set; }
+        public bool IsDead { get; protected set; }
 
         /// <summary>
         /// Creat the default game.
@@ -46,7 +46,10 @@ namespace SnakeGameCore
             _height = height;
         }
 
-        public void Start()
+        /// <summary>
+        /// Resets the game. 
+        /// </summary>
+        public void Reset()
         {
             // Setup snake
             var center = new Point(Width / 2, Height / 2);
@@ -71,7 +74,7 @@ namespace SnakeGameCore
             _direction = Directions.Up;
             IsDead = false;
 
-            Points = 100;
+            Points = 0;
         }
 
         private void RemoveFoodLocation(Vector2 position)
@@ -105,14 +108,11 @@ namespace SnakeGameCore
                 return;
             }
 
-            var speed = 11f;
-
-
+            var speed = 9f;
 
             // Move snake
             if (_moveDirection >= 1f)
             {
-
                 // We dont allow the player to move into the snake itself and if no direction was specified we continue on the current direction.
                 if (direction == Directions.None ||
                     _direction.Inverse() == direction)
@@ -135,9 +135,9 @@ namespace SnakeGameCore
                         && _direction != direction
                         && _direction.Inverse() != direction)
             {
-                //Debug.WriteLine($"Direction was ignored because too little time has passed for the snake to move.");
                 var nextHead = direction.ToPoint();
-                nextHead.Offset(_snake[0]);
+                var head = _snake[0];
+                nextHead.Offset(head);
 
                 _snake.Insert(0, nextHead);
                 _snake.RemoveAt(_snake.Count - 1);
@@ -162,12 +162,11 @@ namespace SnakeGameCore
                     var body = _snake[i];
                     if (head == body)
                     {
-                        //Debug.Fail("Stop");
                         IsDead = true;
-                        goto endOfCollisionCheck;
+                        goto endOfCollisionCheck; // FUCK FLAGS
                     }
                 }
-            endOfCollisionCheck:;
+                endOfCollisionCheck:;
             }
         }
 
