@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <!-- https://github.com/emepetres/dotnet-wasm-sample/blob/main/src/console-native/Wasm.ConsoleNative.Sample.csproj -->
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -43,8 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoroutineScheduler" Version="0.3.0" />
-    <PackageReference Include="Verlite.MsBuild" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="Silk.NET.OpenGLES" Version="2.17.1" />
     
     <TrimmableAssembly Include="Silk.NET.Maths" />

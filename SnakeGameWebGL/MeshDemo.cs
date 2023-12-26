@@ -5,8 +5,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-using CoroutineScheduler;
-
 using Silk.NET.OpenGLES;
 
 namespace WebGL.Sample;
@@ -22,7 +20,6 @@ public struct VertexShaderInput
 public class MeshDemo
 {
 	private GL Gl { get; }
-	private Scheduler Scheduler { get; }
 	
 	private static async Task<string> DownloadFile(
 		HttpClient client,
@@ -70,8 +67,6 @@ public class MeshDemo
 		string fragmentSource)
 	{
 		Gl = gl;
-		Scheduler = new();
-		_ = Scheduler.SpawnTask(LogicThread);
 
 		// setup the vertex buffer to draw
 		VertexBuffer = new VertexShaderInput[MeshData.TriangleVerts.Length];
@@ -170,9 +165,6 @@ public class MeshDemo
 	private float LogoRotation { get; set; }
 	public unsafe void Render()
 	{
-		// iterate our logic thread
-		Scheduler.Resume();
-
 		// update the vertex buffer
 		var modelMatrix =
 			Matrix3x2.CreateScale(LogoScale) *
@@ -217,7 +209,7 @@ public class MeshDemo
 		for (int i = 0; i < count; i++)
 		{
 			LogoTranslation += deltaPerFrame;
-			await Scheduler.Yield();
+			//await Scheduler.Yield();
 		}
 		LogoTranslation = position;
 	}
