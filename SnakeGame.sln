@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeGameCore", "SnakeGame\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeGameConsole", "SnakeGameConsole\SnakeGameConsole.csproj", "{0F0EC500-15A5-481F-A9D8-886E24E3B20B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebGL.Sample", "SnakeGameWebGL\WebGL.Sample.csproj", "{28F4B23C-4B84-496B-952A-0919E3D02B18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{0F0EC500-15A5-481F-A9D8-886E24E3B20B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F0EC500-15A5-481F-A9D8-886E24E3B20B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F0EC500-15A5-481F-A9D8-886E24E3B20B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28F4B23C-4B84-496B-952A-0919E3D02B18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28F4B23C-4B84-496B-952A-0919E3D02B18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28F4B23C-4B84-496B-952A-0919E3D02B18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28F4B23C-4B84-496B-952A-0919E3D02B18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
