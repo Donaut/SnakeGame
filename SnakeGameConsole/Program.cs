@@ -24,7 +24,7 @@ internal class Program
 
         //var renderer = new ConsoleRenderer(game.Width, game.Height);
         var renderer = new ConsoleRenderer(game.Width, game.Height);
-
+        
         restart:;
 
         game.Reset();
@@ -43,6 +43,8 @@ internal class Program
             double frameTime = (newTime - currentTime) / Stopwatch.Frequency;
             currentTime = newTime;
 
+            if(frameTime > dt * 5)
+                continue; // Too large skip happened we dont try to catch up.
             accumulator += frameTime;
 
             // Pool input.
@@ -70,7 +72,6 @@ internal class Program
                 if (hasBeenPressed)
                 {
                     direction = nextDirection;
-
                     // If we find a new key which has been pressed we break out early to avoid consuming uneccessary key presses.
                     break;
                 }
