@@ -8,6 +8,15 @@ using System.Threading.Tasks;
 
 namespace SnakeGameCore;
 
+public interface IRenderer
+{
+    void DrawHead(Vector2 vector2, float rotation);
+
+    void DrawBody(Vector2 vector2, float rotation);
+
+    void DrawTail(Vector2 vector2);    
+}
+
 public interface IConsoleRenderer
 {
     /// <summary>

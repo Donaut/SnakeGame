@@ -11,17 +11,17 @@ using System.Drawing;
 namespace SnakeGameCore
 {
     [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
-    public readonly struct Directions : IEquatable<Directions>
+    public readonly struct Direction : IEquatable<Direction>
     {
-        public static Directions None = new Directions(0, 0);
+        public static Direction None = new Direction(0, 0);
 
-        public static Directions Up = new Directions(0, -1);
+        public static Direction Up = new Direction(0, -1);
 
-        public static Directions Right = new Directions(1, 0);
+        public static Direction Right = new Direction(1, 0);
 
-        public static Directions Down = new Directions(0, 1);
+        public static Direction Down = new Direction(0, 1);
 
-        public static Directions Left = new Directions(-1, 0);
+        public static Direction Left = new Direction(-1, 0);
 
         public readonly int X;
 
@@ -30,20 +30,20 @@ namespace SnakeGameCore
         /// <summary>
         /// Private constructor so people cant override it.
         /// </summary>
-        private Directions(int x, int y)
+        private Direction(int x, int y)
         {
             X = x; 
             Y = y;
         }
 
         /// <inheritdoc />
-        public Directions Inverse() => new Directions(X * -1, Y * -1);
+        public Direction Inverse() => new Direction(X * -1, Y * -1);
 
         /// <inheritdoc />
-        public override bool Equals(object? obj) => obj is Directions directions && Equals(directions);
+        public override bool Equals(object? obj) => obj is Direction directions && Equals(directions);
 
         /// <inheritdoc />
-        public bool Equals(Directions other) => X == other.X && Y == other.Y;
+        public bool Equals(Direction other) => X == other.X && Y == other.Y;
 
         /// <inheritdoc />
         public override int GetHashCode() => HashCode.Combine(X, Y);
@@ -74,9 +74,9 @@ namespace SnakeGameCore
             return string.Empty;
         }
 
-        public static bool operator ==(Directions left, Directions right) => left.Equals(right);
+        public static bool operator ==(Direction left, Direction right) => left.Equals(right);
 
-        public static bool operator !=(Directions left, Directions right) => !(left == right);
+        public static bool operator !=(Direction left, Direction right) => !(left == right);
 
         public Point ToPoint() => new Point(X, Y);
 

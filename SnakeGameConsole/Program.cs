@@ -16,8 +16,8 @@ internal class Program
     {
         Console.CursorVisible = false;
 
-        var previousKeyStates = new List<Directions>(16);
-        var currentKeyStates = new List<Directions>(16);
+        var previousKeyStates = new List<Direction>(16);
+        var currentKeyStates = new List<Direction>(16);
         
         var game = new Game();
         
@@ -31,7 +31,7 @@ internal class Program
 
         const double dt = 1 / 60f; // 60 FPS (1 / 60 = 0.01666666)
 
-        Directions direction = Directions.None;
+        Direction direction = Direction.None;
         var waitingForFirstInput = true;
         var pointsBuffer = new char[32];
 
@@ -55,14 +55,14 @@ internal class Program
             {
                 var nextDirection = Console.ReadKey(true).Key switch
                 {
-                    ConsoleKey.W or ConsoleKey.UpArrow => Directions.Up,
-                    ConsoleKey.D or ConsoleKey.RightArrow => Directions.Right,
-                    ConsoleKey.S or ConsoleKey.DownArrow => Directions.Down,
-                    ConsoleKey.A or ConsoleKey.LeftArrow => Directions.Left,
-                    _ => Directions.None
+                    ConsoleKey.W or ConsoleKey.UpArrow => Direction.Up,
+                    ConsoleKey.D or ConsoleKey.RightArrow => Direction.Right,
+                    ConsoleKey.S or ConsoleKey.DownArrow => Direction.Down,
+                    ConsoleKey.A or ConsoleKey.LeftArrow => Direction.Left,
+                    _ => Direction.None
                 };
                 
-                if(nextDirection == Directions.None)
+                if(nextDirection == Direction.None)
                     continue;
 
                 currentKeyStates.Add(nextDirection);

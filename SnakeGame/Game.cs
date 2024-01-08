@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SnakeGameCore
 {
@@ -15,17 +20,18 @@ namespace SnakeGameCore
     {
         private readonly int _width;
         private readonly int _height;
+        private readonly int _speed;
+        private readonly List<Vector2> _snake = [];
+
         
-        private readonly List<Point> _snake = [];
-        private Directions _direction = Directions.None;
-        private readonly Random _random = new(); // Dont want to use Random.Shared
-        // Doesn't matter the direction when the threshold is reached we will move the head to the current direction
-        private float _moveDirection = 0;
+
 
         private List<int> _foodLocations = [];
         private List<Point> _foods = new();
-        private Point _tail;
+        private Vector2 _tail;
 
+
+        private readonly Random _random = new(); // Dont want to use Random.Shared
 
         /// <summary>
         /// Width of the map
@@ -46,12 +52,12 @@ namespace SnakeGameCore
         /// </summary>
         /// <param name="width">The width of the map</param>
         /// <param name="height">The height of the map</param>
-        public Game(int width = 70, int height = 27)
+        public Game(int width = 70, int height = 27, int speed = 7)
         {
             _width = width;
             _height = height;
+            _speed = speed;
 
-            
             _foodLocations = new List<int>(Width * Height);
         }
 
@@ -61,7 +67,10 @@ namespace SnakeGameCore
         public void Reset()
         {
             // Setup snake
-            var center = new Point(Width / 2, Height / 2);
+            var center = new Vector2(Width / 2, Height / 2);
+
+            // TODO: Remove me
+            center = new Vector2(0, Height - 1);
 
             _snake.Clear();
             _snake.Add(center);
@@ -75,10 +84,10 @@ namespace SnakeGameCore
             {
                 _foodLocations.Add(i);
             }
-            RemoveFoodLocation(center);
-            RemoveFoodLocation(new (center.X, center.Y + 1));
-            RemoveFoodLocation(new (center.X, center.Y + 2));
-            
+            RemoveFoodLocation(new((int)center.X, (int)center.Y));
+            RemoveFoodLocation(new((int)center.X, (int)center.Y + 1));
+            RemoveFoodLocation(new((int)center.X, (int)center.Y + 2));
+
             _foods.Clear();
             for (var i = 0; i < 10; i++)
             {
@@ -90,111 +99,115 @@ namespace SnakeGameCore
             }
 
             _tail = _snake.Last();
-            _direction = Directions.Up;
+            //_direction = Directions.Up;
             IsDead = false;
 
             Points = 0;
+
+            //for (var i = 0; i < 10; i++)
+            //{
+            //    _directions.Enqueue(Direction.Right);
+            //    _directions.Enqueue(Direction.Up);
+            //}
+            //_waitingForFirstInput = false;
         }
 
-        public void Update(float elapsedSeconds, Directions direction)
+        // Doesn't matter the direction when the threshold is reached we will move the head to the current direction
+        private Direction _currDirection = Direction.Up;
+        private bool _waitingForFirstInput = true;
+        private float _t = 0;
+
+        private Queue<Direction> _directions = new();
+        public void Update(float elapsedSeconds, Direction direction)
         {
             if (IsDead)
             {
                 return;
             }
 
-            // We dont allow the player to move into the snake itself and if no direction was specified we continue on the current direction.
-            if (_direction.Inverse() == direction
-                || direction == Directions.None)
+            if(direction != Direction.None)
             {
-                direction = _direction;
+                _directions.Enqueue(direction);
+                _waitingForFirstInput = false;
             }
 
-            var speed = 9f;
+            if (_waitingForFirstInput)
+                return;
 
-            // Move snake
-            if (_moveDirection >= 1f)
+            _t += elapsedSeconds / (1F / _speed);
+
+            //_snake[0] += _direction.ToVector2() * _speed * elapsedSeconds;
+            // We moved one block
+            if (_t >= 1)
             {
-                var nextHead = direction.ToPoint();
-                var head = _snake[0];
-                nextHead.Offset(head);
-
-                _tail = _snake.Last();
-
-                _snake.Insert(0, nextHead);
-                _snake.RemoveAt(_snake.Count - 1);
-
-                _moveDirection = 0;
-                _direction = direction;
-
-                AddFoodLocation(_tail);
-                RemoveFoodLocation(nextHead);
-            }
-            else if (_direction != direction)
-            {
-                var nextHead = direction.ToPoint();
-                var head = _snake[0];
-                nextHead.Offset(head);
-
-                _tail = _snake.Last();
-
-                _snake.Insert(0, nextHead);
-                _snake.RemoveAt(_snake.Count - 1);
-
-                _moveDirection = 0;
-                _direction = direction;
-
-                AddFoodLocation(_tail);
-                RemoveFoodLocation(nextHead);
-            }
-            
-
-
-            _moveDirection += speed * elapsedSeconds;
-
-            // Check food collision
-            {
-                var head = _snake[0];
-
-                var index = _foods.IndexOf(head);
-
-                if (index != -1)
-                {
-                    _snake.Add(_tail);
-                    RemoveFoodLocation(_tail);
-                    //AddFoodLocation(head);
-                    //AddFoodLocation(_foods[index]);
-                    _foods.RemoveAt(index);
-
-                    if (TryGenerateFoodLocation(out var food))
-                    {
-                        _foods.Add(food);
-                    }
-
-                    Points += 10;
-                }
-            }
-
-            // Check collision
-            {
-                var head = _snake[0];
-                if (head.X < 0 || head.X >= Width || head.Y < 0 || head.Y >= Height)
+                var newHead = _snake[0] + _currDirection.ToVector2();
+                if (newHead.X < 0 || newHead.X >= Width || newHead.Y < 0 || newHead.Y >= Height)
                 {
                     IsDead = true;
-                    goto endOfCollisionCheck; // FUCK FLAGS
+                    return;
                 }
-                // Collision check
-                for (int i = 1; i < _snake.Count; i++)
+
+                if(_directions.TryDequeue(out var nextDirection))
                 {
-                    var body = _snake[i];
-                    if (head == body)
-                    {
-                        IsDead = true;
-                        goto endOfCollisionCheck; // FUCK FLAGS
-                    }
+                    _currDirection = nextDirection;
                 }
-                endOfCollisionCheck:;
+
+                _t = 0;
+
+                _snake.RemoveAt(_snake.Count - 1);
+                _snake.Insert(0, newHead);
             }
+        }
+
+        public void Draw<TRenderer>(float elapsedSeconds, TRenderer renderer) where TRenderer : IRenderer
+        {
+            var t = _t; // t is a value beetwen 0 and 1.
+
+
+            var currDirection = _currDirection.ToVector2();
+            var nextDirection = currDirection;
+            if (_directions.TryPeek(out var direction))
+                nextDirection = direction.ToVector2();
+
+            
+            // Draw body
+            for (var i = 0; i < _snake.Count - 1; i++)
+            {
+                var currBody = _snake[i];
+                renderer.DrawBody(currBody, 0);
+            }
+
+            // Draw tail
+            var last = _snake.Last();
+            var beforeLast = _snake[_snake.Count - 2];
+            var tailDirection = Vector2.Normalize(beforeLast - last);
+            var tail = Vector2.Lerp(last, last + tailDirection, t);
+            renderer.DrawBody(tail, 0);
+
+
+            var head = _snake[0];
+
+            // Draw neck
+            var neck = Vector2.Lerp(head, head + currDirection, MathF.Min(1F, t * 1.3f));
+            renderer.DrawBody(neck, 0);
+
+
+            var headStart = head + currDirection / 2;
+            var headEnd = head + currDirection + nextDirection / 2;
+            var rotation = -MathF.Atan2(nextDirection.X, nextDirection.Y) + MathF.PI;
+
+            
+            if (t <= .5f) 
+            {   
+                headEnd = head + currDirection + currDirection / 2;
+                rotation = -MathF.Atan2(currDirection.X, currDirection.Y) + MathF.PI;
+            }
+
+            var headFinal = Vector2.Lerp(headStart, headEnd, t);
+            //t = MathExtensions.EaseOutExpo(t);
+
+
+            renderer.DrawHead(headFinal, rotation);
         }
 
         /// <summary>
@@ -202,28 +215,6 @@ namespace SnakeGameCore
         /// </summary>
         public void DrawConsole<TRenderer>(TRenderer renderer) where TRenderer : IConsoleRenderer
         {
-            renderer.BeginDraw();
-            try
-            {
-                // TODO: The snake tail and head í0
-                for (var i = 0; i < _snake.Count; i++)
-                {
-                    var current = _snake[i];
-
-                    renderer.DrawCharacter(current.X, current.Y, '#');
-                }
-
-                for (var i = 0; i < _foods.Count; i++)
-                {
-                    var current = _foods[i];
-
-                    renderer.DrawCharacter(current.X, current.Y, '@');
-                }
-            }
-            finally
-            {
-                renderer.EndDraw();
-            }
         }
 
         private void RemoveFoodLocation(Point point, [CallerLineNumber] int sourceLineNumber = 0)
@@ -282,6 +273,25 @@ namespace SnakeGameCore
 
             location = new Point(x, y);
             return true;
+        }
+    }
+
+    static class Vector2Extensions
+    {
+        public static Vector2 EaseOutExpo(this Vector2 @this)
+        {
+            @this.X = MathExtensions.EaseOutExpo(@this.X);
+            @this.Y = MathExtensions.EaseOutExpo(@this.Y);
+
+            return @this;
+        }
+    }
+
+    static class MathExtensions
+    {
+        public static float EaseOutExpo(float x) 
+        {
+            return x == 1F ? 1 : 1 - MathF.Pow(2, -10 * x);
         }
     }
 }
