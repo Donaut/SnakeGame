@@ -7,6 +7,9 @@
     <EmccFlags>-sFULL_ES2 -sFULL_ES3 -lopenal -lGL</EmccFlags>
     <WasmMainJSPath>main.js</WasmMainJSPath>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<WasmEnableExceptionHandling>false</WasmEnableExceptionHandling>
+	<WasmEnableSIMD>false</WasmEnableSIMD>
+    <CompressionEnabled>false</CompressionEnabled>
   </PropertyGroup>
 
   <PropertyGroup>
