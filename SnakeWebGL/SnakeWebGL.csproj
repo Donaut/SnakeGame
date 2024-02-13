@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- https://github.com/emepetres/dotnet-wasm-sample/blob/main/src/console-native/Wasm.ConsoleNative.Sample.csproj -->
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+	<RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <EmccFlags>-sFULL_ES2 -sFULL_ES3 -lopenal -lGL</EmccFlags>
+    <WasmMainJSPath>main.js</WasmMainJSPath>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">false</PublishTrimmed>
+	<PublishTrimmed Condition="'$(Configuration)' == 'Release'">true</PublishTrimmed>
+	<BlazorEnableCompression Condition="'$(Configuration)' == 'Debug'">false</BlazorEnableCompression>
+	 <!--<RunAOTCompilation>true</RunAOTCompilation>
+    <AOTMode>LLVMOnly</AOTMode>--> 
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <NativeFileReference Include="Native/libEGL.c" ScanForPInvokes="true" />
+    <NativeFileReference Include="Native/openal32.c" ScanForPInvokes="true" />
+    <NativeFileReference Include="Native/emscripten.c" ScanForPInvokes="true" />
+
+    <WasmExtraFilesToDeploy Include="index.html" />
+    <WasmExtraFilesToDeploy Include="main.js" />
+    <WasmExtraFilesToDeploy Include="$(MSBuildThisFileDirectory)Assets\**" TargetPath="Assets/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Silk.NET.OpenGLES" Version="2.17.1" />
+    <ProjectReference Include="..\SnakeCore\SnakeCore.csproj" />
+    
+    <TrimmableAssembly Include="Silk.NET.Maths" />
+  </ItemGroup>
+</Project>
