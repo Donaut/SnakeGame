@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeWebGL", "SnakeWebGL\Sn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeFNA", "SnakeFNA\SnakeFNA.csproj", "{B3B9DF7A-FC2B-4393-8669-373EB59C76DD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FNA.Core", "submodules\FNA.Core.csproj", "{17BD05F8-C265-486A-8865-1540C2B6E169}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FNA.Core", "submodules\FNA\FNA.Core.csproj", "{17BD05F8-C265-486A-8865-1540C2B6E169}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SnakeCore\SnakeCore.csproj" />
-    <ProjectReference Include="..\submodules\FNA.Core.csproj" />
+    <ProjectReference Include="..\submodules\FNA\FNA.Core.csproj" />
   </ItemGroup>
 	
   <ItemGroup>
