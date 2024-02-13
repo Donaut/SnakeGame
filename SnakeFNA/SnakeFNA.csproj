@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FNA\FNA.Core.csproj" />
     <ProjectReference Include="..\SnakeCore\SnakeCore.csproj" />
+    <ProjectReference Include="..\submodules\FNA.Core.csproj" />
   </ItemGroup>
 	
   <ItemGroup>
