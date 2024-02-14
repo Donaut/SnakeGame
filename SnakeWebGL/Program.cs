@@ -5,7 +5,6 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
 using Silk.NET.OpenGLES;
-
 using SnakeWebGL;
 
 [assembly: SupportedOSPlatform("browser")]
@@ -18,68 +17,42 @@ public static class Test
 
     private static double? currentTime = null; // Milliseconds, 100 is 0.1 Seconds
     private static double accumulator = 0; // Seconds, 1.5 is 1 second and 500 millisecond
-    private static double totalT = 0;
 
-    /// <summary>
-    /// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
-    /// </summary>
-    public static Queue<string> KeyPresses { get; internal set; } = new Queue<string>();
-
-    // https://emscripten.org/docs/api_reference/html5.h.html?highlight=emscripten_request_animation_frame#c.emscripten_request_animation_frame_loop
     [UnmanagedCallersOnly]
     public static int Frame(double newTime, int userData)
     {
-        //ArgumentNullException.ThrowIfNull(Game);
-        //ArgumentNullException.ThrowIfNull(Demo);
-        //      const double dt = 1 / 60f; // 60 FPS (1 / 60 = 0.01666666)
-        //currentTime ??= newTime;
+        ArgumentNullException.ThrowIfNull(Game);
 
-        //var frameTime = (newTime - (int)currentTime) / 1000;
-        //      //Console.WriteLine($"{frameTime} - {frameTime * 1000} - {dt}");
+        const float dt = 1 / 60f; // 60 FPS (1 / 60 = 0.01666666)
+        currentTime ??= newTime;
 
-        //      accumulator += frameTime;
+        var frameTime = (newTime - (int)currentTime) / 1000;
+        accumulator += frameTime;
 
-        //      // READ Inputs
-        ////var direction = Direction.None;
+        var direction = SnakeCore.Direction.None;
+        if (Interop.IsKeyPressed(Keys.W))
+            direction = SnakeCore.Direction.Up;
+        else if (Interop.IsKeyPressed(Keys.D))
+            direction = SnakeCore.Direction.Right;
+        else if (Interop.IsKeyPressed(Keys.S))
+            direction = SnakeCore.Direction.Down;
+        else if (Interop.IsKeyPressed(Keys.A))
+            direction = SnakeCore.Direction.Left;
 
-        ////while(KeyPresses.TryDequeue(out var key)
-        ////	&& direction == Direction.None)
-        ////{
-        ////          // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
-        ////          direction = key switch
-        ////	{
-        ////		"W" => Direction.Up,
-        ////		"D" => Direction.Right,
-        ////		"S" => Direction.Down,
-        ////		"A" => Direction.Left,
-        ////		_ => Direction.None
-        ////	};
-        ////}
+        if(accumulator >= dt)
+        {
+            Interop.UpdateInput();
+        }
 
+        while (accumulator >= dt)
+        {
+            Game.Update(dt, direction);
+            accumulator -= dt;
+        }
 
+        Game.Draw();
 
-        //      while (accumulator >= dt)
-        //      {
-        //          // UPDATE
-        //	totalT += dt;
-        //          accumulator -= dt;
-        //      }
-
-
-        //      // Draw
-        //if(totalT > 10) // 10 seconds
-        //{
-        //          Console.WriteLine($"10 Seconds elapsed - FrameTime: {frameTime}");
-        //	totalT = 0;
-        //      }
-
-
-        //if(Demo != null)
-        //    Demo.Render();
-        if(Game != null)
-            Game.Draw();
-
-        //currentTime = newTime;
+        currentTime = newTime;
         return 1; // The return value should be a bolean, false if the Frame is canceled and the animation should stop
     }
 
@@ -162,6 +135,7 @@ public static class Test
 
         unsafe
         {
+            // https://emscripten.org/docs/api_reference/html5.h.html?highlight=emscripten_request_animation_frame#c.emscripten_request_animation_frame_loop
             Emscripten.RequestAnimationFrameLoop((delegate* unmanaged<double, int, int>)&Frame, 10);
         }
     }

@@ -15,9 +15,10 @@ const interop = exports.WebGL.Sample.Interop;
 var canvas = globalThis.document.getElementById("canvas");
 dotnet.instance.Module["canvas"] = canvas;
 
+let prevKeys = {};
+let currKeys = {};
 setModuleImports("main.js", {
 	initialize: () => {
-
 		var checkCanvasResize = (dispatch) => {
 			var devicePixelRatio = window.devicePixelRatio || 1.0;
 			var displayWidth = canvas.clientWidth * devicePixelRatio;
@@ -29,21 +30,22 @@ setModuleImports("main.js", {
 				dispatch = true;
 			}
 
-			if (dispatch)
-				interop.OnCanvasResize(displayWidth, displayHeight, devicePixelRatio);
+			if (dispatch) interop.OnCanvasResize(displayWidth, displayHeight, devicePixelRatio);
 		}
 
 		function checkCanvasResizeFrame() {
 			checkCanvasResize(false);
-			requestAnimationFrame(checkCanvasResizeFrame);
+			requestAnimationFrame(checkCanvasResizeFrame); // The callback only called after this method returns.
 		}
 
 		/** @param {KeyboardEvent} e */
-		var keyPress = (e) => {
-			e.stopPropagation();
-			if (e.repeat) return;
-			let key = e.key;
-			interop.OnKeyPress(key);
+		var keyDown = (e) => {
+			currKeys[e.code] = true;
+		};
+
+		/** @param {KeyboardEvent} e */
+		var keyUp = (e) => {
+			currKeys[e.code] = false;
 		};
 
 		/** @param {MouseEvent} e */
@@ -71,7 +73,8 @@ setModuleImports("main.js", {
 			interop.OnMouseUp(shift, ctrl, alt, button);
 		}
 
-		canvas.addEventListener("keydown", keyPress, false);
+		canvas.addEventListener("keydown", keyDown, false);
+		canvas.addEventListener("keyup", keyUp, false);
 		canvas.addEventListener("mousemove", mouseMove, false);
 		canvas.addEventListener("mousedown", mouseDown, false);
 		canvas.addEventListener("mouseup", mouseUp, false);
@@ -80,7 +83,16 @@ setModuleImports("main.js", {
 
 		canvas.tabIndex = 1000;
 	},
-	
+
+	updateInput: () => {
+		prevKeys = { ...currKeys };
+	},
+
+	isKeyPressed: (key) => {
+		var res = !currKeys[key] && prevKeys[key];
+
+		return res;
+	}
 });
 
 await dotnet.run();

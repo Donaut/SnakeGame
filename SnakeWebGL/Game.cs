@@ -30,9 +30,9 @@ public class Game
         _game.Initialize();
     }
 
-    public void Update()
+    public void Update(float elapsedSeconds, Direction direction)
     {
-
+        _game.Update(elapsedSeconds, direction);
     }
 
     public void Draw()
@@ -46,7 +46,6 @@ public class Game
 
     internal void CanvasResized(int canvasWidth, int canvasHeight)
     {
-        
         _renderer.CanvasWidth = canvasWidth;
         _renderer.CanvasHeight = canvasHeight;
     }
