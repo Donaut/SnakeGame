@@ -17,18 +17,6 @@ internal static partial class Interop
     public static partial void UpdateInput();
 
     [JSExport]
-    public static void OnKeyAdd(string key)
-    {
-
-    }
-
-    [JSExport]
-    public static void OnKeyRemove(string key)
-    {
-        
-    }
-
-    [JSExport]
     public static void OnMouseMove(float x, float y)
     {
 

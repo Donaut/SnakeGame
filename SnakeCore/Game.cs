@@ -72,22 +72,21 @@ namespace SnakeCore
         public void Initialize()
         {
             var center = new Vector2(_width / 2, _height / 2);
-            center = new Vector2(12, 2);
+            center = new Vector2(4, center.Y);
 
             _snake.Clear();
             _snake.Add(center);
-            _snake.Add(center + new Vector2(0, 1));
-            _snake.Add(center + new Vector2(0, 2));
+            _snake.Add(center + new Vector2(-1, 0));
+            _snake.Add(center + new Vector2(-2, 0));
 
             _waitingForFirstInput = true;
             _t = 0;
 
-            _directions.Clear();
-            _directions.Add(Direction.Up);
+            // TODO: WE DONT NEED TO RESET THE ANIMATION FIELDS HERE
 
-            _directions.Add(Direction.Left);
-            _directions.Add(Direction.Left);
-            _directions.Add(Direction.Up);
+
+            _directions.Clear();
+            _directions.Add(Direction.Right);
 
             _snakeHead = GameData.Block;
             _snakeHeadOffset = Vector2.Zero;
@@ -99,6 +98,7 @@ namespace SnakeCore
             Points = 0;
 
             _stateUpdate = AwaitStart;
+            InGame(0, Direction.None);
         }
 
         //public void Draw<TRenderer>(float elapsedSeconds, TRenderer effectRenderer) where TRenderer : IRenderer
