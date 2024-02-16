@@ -20,6 +20,7 @@ const keyBoard = {
 	prevKeys: {},
 	currKeys: {}
 }
+
 setModuleImports("main.js", {
 	initialize: () => {
 		var checkCanvasResize = (dispatch) => {

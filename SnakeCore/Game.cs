@@ -7,9 +7,6 @@ namespace SnakeCore
 
     public class Game
     {
-        private readonly int _width;
-        private readonly int _height;
-
         // Fields for the snake movement
         private readonly List<Vector2> _snake = new List<Vector2>();
         private bool _waitingForFirstInput = true;
@@ -21,31 +18,32 @@ namespace SnakeCore
         private Vector2 _snakeHeadOffset = Vector2.Zero;
         private Vector2 _snakeHeadRotation;
         private Color _snakeColor = Color.FromArgb(78, 124, 246);
-
         private Vector2 _tailOffset = Vector2.Zero;
-
         private Vector2 _shakeOffset = Vector2.Zero;
 
+
+        private readonly float _shakeDurationStart = .15f;
         private float _shakeDurationRemaining = .15f;
-        private float _goingBackStart = .1f;
+
+        private readonly float _goingBackStart = .1f;
         private float _goingBackRemaining = .1f;
-        private float _waitingMenuStart = 1.1f;
+
+        private readonly float _waitingMenuStart = 1.1f;
         private float _waitingMenuRemaining = 1.1f;
 
         private Vector2 _lastTail;
         private Vector2 _prevLastTail;
-
         private Vector2 _lastDirection;
-
+        
         /// <summary>
         /// Width of the map
         /// </summary>
-        public int Width => _width;
+        public int Width { get; private set; }
 
         /// <summary>
         /// Height of the map
         /// </summary>
-        public int Height => _height;
+        public int Height { get; private set; }
 
         public int Points { get; protected set; }
 
@@ -62,8 +60,8 @@ namespace SnakeCore
         /// <param name="height">The height of the map</param>
         public Game(int width = 13, int height = 10)
         {
-            _width = width;
-            _height = height;
+            Width = width;
+            Height = height;
         }
 
         /// <summary>
@@ -71,7 +69,7 @@ namespace SnakeCore
         /// </summary>
         public void Initialize()
         {
-            var center = new Vector2(_width / 2, _height / 2);
+            var center = new Vector2(Width / 2, Height / 2);
             center = new Vector2(4, center.Y);
 
             _snake.Clear();
@@ -82,17 +80,12 @@ namespace SnakeCore
             _waitingForFirstInput = true;
             _t = 0;
 
-            // TODO: WE DONT NEED TO RESET THE ANIMATION FIELDS HERE
-
-
             _directions.Clear();
             _directions.Add(Direction.Right);
 
-            _snakeHead = GameData.Block;
-            _snakeHeadOffset = Vector2.Zero;
-            _snakeHeadRotation = Direction.Up.ToVector2();
-
-            _shakeOffset = Vector2.Zero;
+            _shakeDurationRemaining = _shakeDurationStart;
+            _goingBackRemaining = _goingBackStart;
+            _waitingMenuRemaining = _waitingMenuStart;
 
             IsDead = false;
             Points = 0;
@@ -108,9 +101,9 @@ namespace SnakeCore
 
             var block = GameData.Block;
 
-            for (var x = 0; x < _width; x++)
+            for (var x = 0; x < Width; x++)
             {
-                for (var y = 0; y < _height; y++)
+                for (var y = 0; y < Height; y++)
                 {
                     effectRenderer.DrawTriangle(
                             block,
@@ -143,8 +136,10 @@ namespace SnakeCore
             var headFinal = Vector2.Clamp(head + _snakeHeadOffset, new Vector2(0, 0), new Vector2(Width - 1, Height - 1));
 
             var headRotation = MathF.Atan2(_snakeHeadRotation.Y, _snakeHeadRotation.X);
+
             effectRenderer.DrawTriangle(headVertices, headRotation, headFinal, _snakeColor);
-            effectRenderer.DrawTriangle(GameData.Eye, headRotation, headFinal, Color.Black);
+            effectRenderer.DrawTriangle(GameData.EyeOuter, headRotation, headFinal, Color.White);
+            effectRenderer.DrawTriangle(GameData.EyeInner, headRotation, headFinal, Color.Black);
         }
 
 
@@ -194,6 +189,9 @@ namespace SnakeCore
             }
 
         updateAnimation:;
+
+            _snakeHead = GameData.Block;
+            
 
             var currDirection = _directions[0].ToVector2();
             var nextDirection = (_directions.Count > 1 ? _directions[1] : _directions[0]).ToVector2();
