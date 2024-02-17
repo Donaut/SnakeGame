@@ -40,7 +40,10 @@ jobs:
         git submodule update --init --recursive
     - name: Install workloads
       run: |
-        dotnet workload install wasm-tools-net7
+        dotnet workload install \
+        wasm-tools-net7 \
+        wasm-tools \
+        wasm-experimental
     - name: Restore dependencies
       run: dotnet restore
     - name: Publish
