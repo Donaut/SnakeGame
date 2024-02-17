@@ -1,26 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- https://github.com/emepetres/dotnet-wasm-sample/blob/main/src/console-native/Wasm.ConsoleNative.Sample.csproj -->
+﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-	<RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
-    <OutputType>Exe</OutputType>
-    <EmccFlags>-sFULL_ES2 -sFULL_ES3 -lopenal -lGL</EmccFlags>
-    <WasmMainJSPath>main.js</WasmMainJSPath>
+    <TargetFramework>net8.0</TargetFramework>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<WasmEnableExceptionHandling>false</WasmEnableExceptionHandling>
-	<WasmEnableSIMD>false</WasmEnableSIMD>
-    <CompressionEnabled>false</CompressionEnabled>
-	<WasmEnableWebcil>true</WasmEnableWebcil>
+
+	<EmccFlags>-sFULL_ES2 -sFULL_ES3 -lopenal -lGL</EmccFlags>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">false</PublishTrimmed>
-	<PublishTrimmed Condition="'$(Configuration)' == 'Release'">true</PublishTrimmed>
-	<BlazorEnableCompression Condition="'$(Configuration)' == 'Debug'">false</BlazorEnableCompression>
-	 <!--<RunAOTCompilation>true</RunAOTCompilation>
-    <AOTMode>LLVMOnly</AOTMode>--> 
-  </PropertyGroup>
-	
   <ItemGroup>
     <NativeFileReference Include="Native/libEGL.c" ScanForPInvokes="true" />
     <NativeFileReference Include="Native/openal32.c" ScanForPInvokes="true" />

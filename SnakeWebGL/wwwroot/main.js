@@ -1,5 +1,5 @@
 // @ts-ignore
-import { dotnet } from './dotnet.js'
+import { dotnet } from './_framework/dotnet.js';
 
 // https://learn.microsoft.com/en-us/aspnet/core/client-side/dotnet-interop?view=aspnetcore-8.0
 const { setModuleImports, getAssemblyExports, getConfig } = await dotnet
