@@ -10,6 +10,7 @@
 	<WasmEnableExceptionHandling>false</WasmEnableExceptionHandling>
 	<WasmEnableSIMD>false</WasmEnableSIMD>
     <CompressionEnabled>false</CompressionEnabled>
+	<WasmEnableWebcil>true</WasmEnableWebcil>
   </PropertyGroup>
 
   <PropertyGroup>
