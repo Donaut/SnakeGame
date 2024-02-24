@@ -1,6 +1,10 @@
 // @ts-ignore
 import { dotnet } from './_framework/dotnet.js';
 
+Sentry.init({
+	dsn: 'https://e17358aac4344e759b8f1b748f8c1544@todo.dyndns.hu/1'
+})
+
 // https://learn.microsoft.com/en-us/aspnet/core/client-side/dotnet-interop?view=aspnetcore-8.0
 const { setModuleImports, getAssemblyExports, getConfig } = await dotnet
 	.withDiagnosticTracing(false)
