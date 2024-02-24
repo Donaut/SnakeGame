@@ -10,7 +10,7 @@ Sentry.init({
 		// If you use a bundle with session replay enabled, add the Replay integration
 		//Sentry.replayIntegration(),
 	],
-	tracesSampleRate: .3,
+	tracesSampleRate: 0.3,
 })
 
 // https://learn.microsoft.com/en-us/aspnet/core/client-side/dotnet-interop?view=aspnetcore-8.0
