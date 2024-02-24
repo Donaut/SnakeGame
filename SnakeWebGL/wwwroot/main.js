@@ -2,7 +2,15 @@
 import { dotnet } from './_framework/dotnet.js';
 
 Sentry.init({
-	dsn: 'https://e17358aac4344e759b8f1b748f8c1544@todo.dyndns.hu/1'
+	dsn: 'https://e17358aac4344e759b8f1b748f8c1544@todo.dyndns.hu/1',
+	release: '1.0.0',
+	integrations: [
+		// If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+		Sentry.browserTracingIntegration(),
+		// If you use a bundle with session replay enabled, add the Replay integration
+		//Sentry.replayIntegration(),
+	],
+	tracesSampleRate: .3,
 })
 
 // https://learn.microsoft.com/en-us/aspnet/core/client-side/dotnet-interop?view=aspnetcore-8.0
@@ -15,8 +23,11 @@ const config = getConfig();
 
 const exports = await getAssemblyExports(config.mainAssemblyName);
 console.log(exports);
+console.log(dotnet);
 const interop = exports.WebGL.Sample.Interop;
 
+/** @type {HTMLCanvasElement} */
+// @ts-ignore
 var canvas = globalThis.document.getElementById("canvas");
 dotnet.instance.Module["canvas"] = canvas;
 
@@ -32,11 +43,8 @@ setModuleImports("main.js", {
 			var displayWidth = canvas.clientWidth * devicePixelRatio;
 			var displayHeight = canvas.clientHeight * devicePixelRatio;
 
-			// @ts-ignore
 			if (canvas.width != displayWidth || canvas.height != displayHeight) {
-				// @ts-ignore
 				canvas.width = displayWidth;
-				// @ts-ignore
 				canvas.height = displayHeight;
 				dispatch = true;
 			}
