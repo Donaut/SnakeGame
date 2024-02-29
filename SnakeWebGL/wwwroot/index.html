@@ -7,34 +7,8 @@
     <style>
         body {
             margin: 0;
-            background-color: black;
             overflow: hidden;
-        }
-
-        canvas#canvas {
-            width: 100vw;
-            height: 100vh;
-            outline: none;
-            margin: 0;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            image-rendering: pixelated;
-        }
-
-        @media (min-aspect-ratio: 16/9) {
-            canvas#canvas {
-                height: 100vh;
-                width: calc(100vh * (16 / 9));
-            }
-        }
-
-        @media (max-aspect-ratio: 4/3) {
-            canvas#canvas {
-                width: 100vw;
-                height: calc(100vw / (4 / 3));
-            }
+            user-select: none;
         }
     </style>
 </head>

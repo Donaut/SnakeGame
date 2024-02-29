@@ -14,7 +14,8 @@ const isDebug = config?.applicationEnvironment == 'Development';
 Sentry.init({
     dsn: 'https://e17358aac4344e759b8f1b748f8c1544@todo.dyndns.hu/1',
     release: '1.0.0',
-    debug: isDebug, 
+    //debug: isDebug,
+    environment: isDebug ? "debug" : undefined,
     integrations: [
 
         // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
@@ -47,8 +48,8 @@ setModuleImports("main.js", {
     initialize: () => {
         var checkCanvasResize = (dispatch: boolean) => {
             var devicePixelRatio = window.devicePixelRatio || 1.0;
-            var displayWidth = canvas.clientWidth * devicePixelRatio;
-            var displayHeight = canvas.clientHeight * devicePixelRatio;
+            var displayWidth = window.innerWidth * devicePixelRatio;
+            var displayHeight = window.innerHeight * devicePixelRatio;
 
             if (canvas.width != displayWidth || canvas.height != displayHeight) {
                 canvas.width = displayWidth;
