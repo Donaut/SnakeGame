@@ -68,7 +68,7 @@ public static class Test
         //Demo?.CanvasResized(CanvasWidth, CanvasHeight);
     }
 
-    public async static Task Main(string[] args)
+    public static void Main(string[] args)
     {
         Console.WriteLine($"Hello from dotnet!");
 

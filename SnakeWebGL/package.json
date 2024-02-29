@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "name": "snakewebgl",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sentry/browser": "^7.103.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.20.1"
+  }
+}
