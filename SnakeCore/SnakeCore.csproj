@@ -6,10 +6,25 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Nullable>enable</Nullable>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Include="..\.editorconfig" Link=".editorconfig" />
+	  <Compile Update="Resource.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resource.resx</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <EmbeddedResource Update="Resource.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="StbImageSharp" Version="2.27.13" />
+	</ItemGroup>
 </Project>

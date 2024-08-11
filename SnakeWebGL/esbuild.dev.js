@@ -5,6 +5,5 @@ await esbuild.build({
     bundle: true,
     external: ['./_framework/*'],
     outfile: './wwwroot/main.js',
-    //minify: true,
-    //sourcemap: 'external'
+    sourcemap: 'inline'
 })

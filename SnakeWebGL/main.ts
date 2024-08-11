@@ -52,8 +52,8 @@ setModuleImports("main.js", {
             var displayHeight = window.innerHeight * devicePixelRatio;
 
             if (canvas.width != displayWidth || canvas.height != displayHeight) {
-                canvas.width = displayWidth;
-                canvas.height = displayHeight;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
                 dispatch = true;
             }
 

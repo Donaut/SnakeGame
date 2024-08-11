@@ -31,7 +31,7 @@
 	  <EsBuildConfiguration Condition="'$(Configuration)' == 'Debug'">false</EsBuildConfiguration>
 	</PropertyGroup>  
 	
-	<Message Text="Calling esbuild, configuration is release: $(EsBuildConfiguration)" Importance="high" />
+	<Message Text="Calling esbuild, configuration is $(EsBuildConfiguration)" Importance="high" />
 	<Exec Command="node esbuild.dev.js" Condition="$(EsBuildConfiguration) == false" ConsoleToMSBuild="true"></Exec>
 	<Exec Command="node esbuild.prod.js" Condition="$(EsBuildConfiguration) == true" ConsoleToMSBuild="true"></Exec>
   </Target>

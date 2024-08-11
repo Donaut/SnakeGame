@@ -29,12 +29,16 @@ namespace SnakeFNA
 
         private MyFnaGame()
         {
-            _game = new SnakeCore.Game(13, 10);
+            _game = new SnakeCore.Game();
             _graphics = new GraphicsDeviceManager(this)
             {
                 // We need this for anti aliasing to work
                 GraphicsProfile = GraphicsProfile.HiDef,
                 PreferMultiSampling = true,
+
+                PreferredBackBufferWidth = 750,
+                PreferredBackBufferHeight = 750,
+
             };
 
             IsMouseVisible = true;
@@ -46,17 +50,15 @@ namespace SnakeFNA
         {
             base.Initialize();
 
-            _graphics.ApplyChanges(); 
+            _graphics.ApplyChanges(); // By default the MSAA changes doesn't get aplied at startup.
 
-            _game.Initialize();
+            
         }
 
         protected override void LoadContent()
         {
-            _renderer = new FNARenderer(GraphicsDevice, _game.Width, _game.Height);
-
-            //GraphicsDevice.PresentationParameters.MultiSampleCount = 16;
-            //_graphics.ApplyChanges();
+            _renderer = new FNARenderer(GraphicsDevice);
+            _game.Initialize(_renderer);
             base.LoadContent();
         }
 
@@ -73,7 +75,7 @@ namespace SnakeFNA
                 direction = SnakeCore.Direction.Down;
             else if (IsKeyPressed(Keys.A))
                 direction = SnakeCore.Direction.Left;
-
+            
             //if(IsKeyPressed(Keys.Space))
             //{
             //    _game.Update(0.016f, SnakeCore.Direction.Up);
@@ -96,6 +98,9 @@ namespace SnakeFNA
 
             _renderer.Begin();
 
+            var viewPort = GraphicsDevice.Viewport;
+            var width = viewPort.Width;
+            var height = viewPort.Height;
             _game.Draw((float)gameTime.ElapsedGameTime.TotalSeconds, _renderer);
 
             _renderer.End();

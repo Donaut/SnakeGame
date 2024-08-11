@@ -4,19 +4,32 @@ namespace SnakeCore
 {
     internal static class Vector2Extensions
     {
-        public static Vector2 LerpQuadraticBezier(Vector2 P0, Vector2 P2, Vector2 P1, float t)
+        public static Vector2 Floor(this Vector2 @this, MidpointRounding mode = default)
         {
-            // (1 - t)^2 * P0 + 2 * (1 - t) * t * P1 + t^2 * P2
-            return (1 - t) * (1 - t) * P0 + 2 * (1 - t) * t * P1 + t * t * P2;
-            //var headFinal = MathF.Pow(1f - t, 2) * headStart + 2f * (1f - t) * t * p1 + t * t * headEnd;
+            return new Vector2(
+                MathF.Floor(@this.X),
+                MathF.Floor(@this.Y));
         }
 
-        public static Vector2 Lerp3(Vector2 left, Vector2 middle, Vector2 right, float t)
+        public static Vector2 Round(this Vector2 @this, MidpointRounding mode = default)
         {
-            if (t < 0)
-                return Vector2.Lerp(middle, left, -t);
-            else
-                return Vector2.Lerp(middle, right, t);
+            return new Vector2(
+                MathF.Round(@this.X, mode),
+                MathF.Round(@this.Y, mode));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="P0">Start point</param>
+        /// <param name="P2">End point</param>
+        /// <param name="P1">Control point</param>
+        /// <param name="t">Number beetwen 0 - 1</param>
+        /// <returns></returns>
+        public static Vector2 LerpQuadraticBezier(Vector2 P0, Vector2 P2, Vector2 P1, float t)
+        {
+            // (1 - t)^2 * P0 + 2 * (1 - t) * t * P1 + t^2 * P1
+            return (1 - t) * (1 - t) * P0 + 2 * (1 - t) * t * P1 + t * t * P2;
         }
     }
 }
