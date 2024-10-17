@@ -16,7 +16,7 @@ public class Game
     // Fields for the snake movement
     private readonly List<Vector2> _snake = new List<Vector2>();
     private bool _waitingForFirstInput = true;
-    private float _t = -.5f;
+    private float _t;
 
     private Direction _currDirection = Direction.None;
     private List<Direction> _nextDirections = new();
@@ -50,12 +50,14 @@ public class Game
     private Vector2 _removedTail2;
 
     /// <summary>
-    /// RENAME TO CELLS COUNT
+    /// TODO: Find better name
+    /// Width of the map in cells
     /// </summary>
     private int Width { get; set; } = 10;
 
     /// <summary>
-    /// RENAME TO CELLS COUNT
+    /// TODO: Find better name
+    /// Height of the map in cells
     /// </summary>
     private int Height { get; set; } = 10;
 
@@ -65,24 +67,20 @@ public class Game
 
     public float Speed { get; set; } = 5;
 
-    //private int _cellSize = 100;
+    private StateUpdate? _stateUpdate;
 
-    private StateUpdate _stateUpdate;
+    private ImageHandle? _eyeImage;
+    private Rectangle _eyeAnimation1;
+    private Rectangle _eyeAnimation2;
 
-    private ImageHandle _eyeImage;
-    private ImageHandle _eatImage;
-    private ImageHandle _cellImage;
+    private ImageHandle? _eatImage;
+    private ImageHandle? _cellImage;
 
-    /// <summary>
-    /// The game is designed in 
-    /// </summary>
-    public int DesignWidth { get; } = 720;
+    public int DesignWidth { get; } = 700;
 
-    public int DesignHeight { get; } = 720;
+    public int DesignHeight { get; } = 700;
 
-    public Game()
-    {
-    }
+    public Game() { }
 
     /// <summary>
     /// Resets the game. 
@@ -92,14 +90,14 @@ public class Game
         var eyeImage = ImageResult.FromMemory(Resource.px_blink, ColorComponents.RedGreenBlueAlpha);
         _eyeImage = renderer.CreateImage(eyeImage.Width, eyeImage.Height, eyeImage.Data);
 
+        _eyeAnimation1 = new Rectangle(20, 20, 40, 40);
+        _eyeAnimation2 = new Rectangle(20, 260, 40, 40);
+
         var eatImage = ImageResult.FromMemory(Resource.px_eat, ColorComponents.RedGreenBlueAlpha);
         _eatImage = renderer.CreateImage(eatImage.Width, eatImage.Height, eatImage.Data);
 
-        var _cellSize = 100;
-        var cellImageBytesLength = _cellSize * _cellSize;
-        var cellImageBytes = ArrayPool<byte>.Shared.Rent(cellImageBytesLength * 4);
-        Array.Fill(cellImageBytes, (byte)255);
-        _cellImage = renderer.CreateImage(_cellSize, _cellSize, cellImageBytes.AsSpan());
+        var cellImage = ImageResult.FromMemory(Resource.px_cell, ColorComponents.RedGreenBlueAlpha);
+        _cellImage = renderer.CreateImage(1, 1, cellImage.Data);
 
         var center = new Vector2(Width / 2, Height / 2);
         center = new Vector2(4, center.Y);
@@ -114,7 +112,6 @@ public class Game
 
         _currDirection = Direction.Right;
         _nextDirections.Clear();
-        //_nextDirections.Add(Direction.Up);
 
         _shakeDurationRemaining = _shakeDurationStart;
         _goingBackRemaining1 = _goingBackStart1;
@@ -129,31 +126,26 @@ public class Game
 
     void InGame(float elapsedSeconds, Direction direction)
     {
-        if (_waitingForFirstInput
+        if(_waitingForFirstInput
             && direction != Direction.None
             && _currDirection.Inverse() != direction)
         {
             _waitingForFirstInput = false;
             _nextDirections.Add(direction);
         }
-        
+
         if(_waitingForFirstInput)
             return;
 
 
-        if (direction != Direction.None)
+        if(direction != Direction.None && !_nextDirections.Contains(direction) && _nextDirections.LastOrDefault(_currDirection) != direction.Inverse())
         {
-            if (!_nextDirections.Contains(direction))
-                //_nextDirection = direction;
-                _nextDirections.Add(direction);
-            else
-                Debug.WriteLine($"Dropped direction: {direction}");
+            _nextDirections.Add(direction);
         }
 
         _t += elapsedSeconds / (1F / Speed);
 
-        // Moved one block
-        if (_t >= 1)
+        if(_t >= 1)
         {
             var newHead = _snake[0] + _currDirection.ToVector2();
 
@@ -164,7 +156,7 @@ public class Game
             _removedTail2 = _removedTail1;
             _removedTail1 = _snake[^1];
 
-            if (_nextDirections.Count > 0) // If no user input keep the last.
+            if(_nextDirections.Count > 0) // If no user input keep the last.
             {
                 _currDirection = _nextDirections[0];
                 _nextDirections.RemoveAt(0);
@@ -176,7 +168,17 @@ public class Game
             _snake.RemoveAt(_snake.Count - 1);
 
             var nextHead = newHead + _currDirection.ToVector2();
-            if (nextHead.X < 0 || nextHead.X > Width - 1 || nextHead.Y < 0 || nextHead.Y > Height - 1)
+            var isDead = false;
+            for(var i = 1; i < _snake.Count; i++)
+            {
+                if(_snake[i] == nextHead)
+                {
+                    isDead = true;
+                    break;
+                }
+            }
+            if(nextHead.X < 0 || nextHead.X > Width - 1 || nextHead.Y < 0 || nextHead.Y > Height - 1
+               || isDead)
             {
                 _snake.RemoveAt(0);
                 _snake.Add(_removedTail1);
@@ -221,12 +223,9 @@ public class Game
                 ;
             }
         }
-        else if (_goingBackRemaining1 > 0)
+        else if(_goingBackRemaining1 > 0)
         {
             _goingBackRemaining1 -= elapsedSeconds;
-
-            //TODO: Snake head here too!
-            //TODO: HEAD?
 
             var currDirection = _lastDirection1.ToVector2();
             var p0 = currDirection / 2;
@@ -235,30 +234,27 @@ public class Game
 
             _snakeHeadOffset = Vector2.Lerp(p0, p1, _goingBackRemaining1 / _goingBackStart1);
             _tailOffset = -Vector2.Lerp(Vector2.Zero, tailDirection, _goingBackRemaining1 / _goingBackStart1);
-            //_tailOffset = new Vector2(.5f, 0);
 
-            if (_goingBackRemaining1 <= 0)
+            if(_goingBackRemaining1 <= 0)
             {
                 // Initialize next state
-                // TODO: Change snake head animation
-
                 _snake.Add(_removedTail1);
+
+                _snakeHeadRotation = _lastDirection1.ToVector2();
 
                 // Copied from the next state!
                 var tailDirection1 = _snake[^1] - _snake[^2];
                 _tailOffset = -Vector2.Lerp(tailDirection1 / 2, tailDirection1, _goingBackRemaining2 / _goingBackStart2);
-                
-                ;
             }
         }
         else if(_goingBackRemaining2 > 0)
         {
             _goingBackRemaining2 -= elapsedSeconds;
-            
+
             var tailDirection = _snake[^1] - _snake[^2];
             _tailOffset = -Vector2.Lerp(tailDirection / 2, tailDirection, _goingBackRemaining2 / _goingBackStart2);
 
-            if (_goingBackRemaining2 <= 0)
+            if(_goingBackRemaining2 <= 0)
             {
                 // Initialize next state
                 ;
@@ -299,21 +295,17 @@ public class Game
 
     public void Update(float elapsedSeconds, Direction direction)
     {
-        _stateUpdate(elapsedSeconds, direction);
+        _stateUpdate!(elapsedSeconds, direction);
     }
 
     public void Draw(float elapsedSeconds, IRenderer renderer)
     {
-        var tileWidth = DesignWidth / Width;
-        var tileHeight = DesignHeight / Height;
+        // WATCH OUT FOR DRAW ORDER!
 
-        var scaleFactor = new Vector2(tileWidth, tileHeight) / new Vector2(_cellImage.Width, _cellImage.Width);
-
-        var tileSize = new Vector2(_cellImage.Width, _cellImage.Height) * scaleFactor;
-
-        for (var x = 0; x < Width; x++)
+        var tileSize = new Vector2(DesignWidth / Width, DesignHeight / Height);
+        for(var x = 0; x < Width; x++)
         {
-            for (var y = 0; y < Height; y++)
+            for(var y = 0; y < Height; y++)
             {
                 var lightGreen = Color.FromArgb(162, 209, 73);
                 var darkGreen = Color.FromArgb(170, 215, 81);
@@ -323,39 +315,34 @@ public class Game
             }
         }
 
+        var snake = _snake;
         var snakeColor = Color.FromArgb(78, 124, 246);
 
-        var head = _snake[0];
+        var head = snake[0];
 
         var headFinal = Vector2.Clamp(head + _snakeHeadOffset, new Vector2(0, 0), new Vector2(Width - 1, Height - 1)) * tileSize;
         var headRotation = MathF.Atan2(_snakeHeadRotation.Y, _snakeHeadRotation.X);
-        var look = headRotation;
-
-        var eyePosition1 = Vector2.Transform(new Vector2(-30, -30) * scaleFactor, Quaternion.CreateFromYawPitchRoll(0, 0, look)) + headFinal + tileSize / 2; // + headFinal + tileSize / 2;
-        var eyePosition2 = Vector2.Transform(new Vector2(-30, 30) * scaleFactor, Quaternion.CreateFromYawPitchRoll(0, 0, look)) + headFinal + tileSize / 2;// + headFinal + tileSize / 2;
-
-        eyePosition1 = eyePosition1.Round();
-        eyePosition2 = eyePosition2.Round();
-
-        var snake = _snake;
 
         var tailFinal = (snake[^1] + _tailOffset) * tileSize;
         renderer.DrawImage(_cellImage, tailFinal, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * snake.Count));
-        
+
         for (var i = 0; i < snake.Count - 1; i++)
         {
             var body = snake[i];
-            var bodyFinal = body * tileSize;
-            renderer.DrawImage(_cellImage, bodyFinal, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * i));
+            renderer.DrawImage(_cellImage, body * tileSize, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * i));
         }
 
         var direction = _currDirection.ToVector2();
         var neckFinal = Vector2.Lerp(head, head + direction, _t) * tileSize;
         renderer.DrawImage(_cellImage, neckFinal, tileSize, 0, Vector2.Zero, snakeColor);
-
         renderer.DrawImage(_cellImage, headFinal, tileSize, 0, Vector2.Zero, snakeColor);
-        renderer.DrawImage(_eyeImage, eyePosition1, new Vector2(40, 40) * scaleFactor, headRotation, new Vector2(20, 20), new Rectangle(20, 20, 40, 40), Color.White);
-        renderer.DrawImage(_eyeImage, eyePosition2, new Vector2(40, 40) * scaleFactor, headRotation, new Vector2(20, 20), new Rectangle(20, 20, 40, 40), Color.White);
 
+        var eyeSize = tileSize / 2.5F;
+        var eyeRotation = headRotation;
+        var eyePosition1 = Vector2.Transform(Vector2.Zero, Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
+        var eyePosition2 = Vector2.Transform(new Vector2(0, tileSize.Y - eyeSize.Y), Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
+
+        renderer.DrawImage(_eyeImage, eyePosition1, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
+        renderer.DrawImage(_eyeImage, eyePosition2, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
     }
 }

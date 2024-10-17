@@ -1,11 +1,12 @@
 ﻿using System.Numerics;
 using System.Diagnostics;
 using System.Drawing;
+using System;
 
 namespace SnakeCore
 {
     [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
-    public readonly struct Direction : IEquatable<Direction>
+    public readonly record struct Direction : IEquatable<Direction>
     {
         public static Direction None = new Direction(0, 0);
 
@@ -34,15 +35,6 @@ namespace SnakeCore
         public Direction Inverse() => new Direction(X * -1, Y * -1);
 
         /// <inheritdoc />
-        public override bool Equals(object? obj) => obj is Direction directions && Equals(directions);
-
-        /// <inheritdoc />
-        public bool Equals(Direction other) => X == other.X && Y == other.Y;
-
-        /// <inheritdoc />
-        public override int GetHashCode() => HashCode.Combine(X, Y);
-
-        /// <inheritdoc />
         public override string ToString()
         {
             if (this == None)
@@ -65,18 +57,9 @@ namespace SnakeCore
             {
                 return "Left";
             }
-
-            return string.Empty;
+            return $"<{X}, {Y}>";
         }
-
-        /// <inheritdoc />
-        public static bool operator ==(Direction left, Direction right) => left.Equals(right);
-
-        /// <inheritdoc />
-        public static bool operator !=(Direction left, Direction right) => !(left == right);
-
-        public Point ToPoint() => new Point(X, Y);
-
+        
         public Vector2 ToVector2() => new Vector2(X, Y);
     }
 }

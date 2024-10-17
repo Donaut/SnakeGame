@@ -1,10 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
-
-
 using Silk.NET.OpenGLES;
 
-namespace WebGL.Sample;
+namespace SnakeWebGL;
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OpenGL names")]
 internal unsafe static class TrampolineFuncs

@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
-
 using Silk.NET.OpenGLES;
 using SnakeWebGL;
 
 [assembly: SupportedOSPlatform("browser")]
 
-namespace WebGL.Sample;
+namespace SnakeWebGL;
 
-public static class Test
+public static class Program
 {
     private static Game? Game { get; set; }
 
@@ -56,16 +55,9 @@ public static class Test
         return 1; // The return value should be a bolean, false if the Frame is canceled and the animation should stop
     }
 
-    private static int CanvasWidth { get; set; }
-
-    private static int CanvasHeight { get; set; }
-
     public static void CanvasResized(int width, int height)
     {
-        CanvasWidth = width;
-        CanvasHeight = height;
-        Game?.CanvasResized(CanvasWidth, CanvasHeight);
-        //Demo?.CanvasResized(CanvasWidth, CanvasHeight);
+        Game?.CanvasResized(width, height);
     }
 
     public static void Main(string[] args)
@@ -131,7 +123,8 @@ public static class Test
         var gl = GL.GetApi(EGL.GetProcAddress);
         Interop.Initialize();
 
-        Game = Game.Create(gl, CanvasWidth, CanvasHeight);
+
+        Game = Game.Create(gl);
 
         unsafe
         {

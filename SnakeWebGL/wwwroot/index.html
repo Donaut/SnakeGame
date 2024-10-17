@@ -9,17 +9,33 @@
             margin: 0;
             overflow: hidden;
             user-select: none;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
-        #canvas {
+        canvas {
+            aspect-ratio: 1 / 1;
+            /*
+            TODO: Decide if we want the canvas to be full size all time or allow people to scale with zoom.
+            */
+
+            width: 100%;
+            max-height: 100%;
+            max-width: 100vmin;
+
+            /* width: 700px; */
+
             outline: none;
+
+            image-rendering: pixelated;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" tabindex="0" autofocus>
-    </canvas>
-
+    <canvas id="canvas" width="700", height="700" tabindex="0" autofocus/>
     <script type="module" src="./main.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace WebGL.Sample;
+namespace SnakeWebGL;
 
 internal static class EGL
 {

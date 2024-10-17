@@ -1,40 +1,14 @@
 ﻿// @ts-ignore
 import { dotnet } from './_framework/dotnet.js';
-import * as Sentry from "@sentry/browser";
 
-const { setModuleImports, getAssemblyExports, getConfig } = await dotnet
-    .withDiagnosticTracing(false)
+const { setModuleImports, getAssemblyExports, getConfig, runMain } = await dotnet
+    //.withDiagnosticTracing(false)
     .withApplicationArgumentsFromQuery()
+    //.withApplicationArguments("start")
     .create();
 const config = getConfig();
-const isDebug = config?.applicationEnvironment == 'Development';
-
-
-
-Sentry.init({
-    dsn: 'https://e17358aac4344e759b8f1b748f8c1544@todo.dyndns.hu/1',
-    release: '1.0.0',
-    //debug: isDebug,
-    environment: isDebug ? "debug" : undefined,
-    integrations: [
-
-        // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
-        Sentry.browserTracingIntegration(),
-        // If you use a bundle with session replay enabled, add the Replay integration
-        //Sentry.replayIntegration(),
-    ],
-    tracesSampleRate: isDebug ? 1.0 : 0.3,
-});
-
-
 const exports = await getAssemblyExports(config.mainAssemblyName);
-
-console.log(`Is debug: ${isDebug}`);
-console.log(`C# exports: ${exports}`);
-console.log(`dotnet: ${dotnet}`);
-console.log(`config: ${config}`);
-
-const interop = exports.WebGL.Sample.Interop;
+const interop = exports.SnakeWebGL.Interop;
 
 var canvas = globalThis.document.getElementById("canvas") as HTMLCanvasElement;
 dotnet.instance.Module["canvas"] = canvas;
@@ -44,25 +18,19 @@ const keyBoard: { [key: string]: any } = {
     currKeys: {}
 }
 
+const resizeObserver = new ResizeObserver(onResize);
+try {
+    // only call us of the number of device pixels changed
+    resizeObserver.observe(canvas, { box: 'device-pixel-content-box' });
+} catch (ex) {
+    // device-pixel-content-box is not supported so fallback to this
+    resizeObserver.observe(canvas, { box: 'content-box' });
+}
+
 setModuleImports("main.js", {
     initialize: () => {
-        var checkCanvasResize = (dispatch: boolean) => {
-            var devicePixelRatio = window.devicePixelRatio || 1.0;
-            var displayWidth = window.innerWidth * devicePixelRatio;
-            var displayHeight = window.innerHeight * devicePixelRatio;
-
-            if (canvas.width != displayWidth || canvas.height != displayHeight) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                dispatch = true;
-            }
-
-            if (dispatch) interop.OnCanvasResize(displayWidth, displayHeight, devicePixelRatio);
-        }
-
-        function checkCanvasResizeFrame() {
-            checkCanvasResize(false);
-            requestAnimationFrame(checkCanvasResizeFrame); // The callback only called after this method returns.
+        function step() {
+            requestAnimationFrame(step); // The callback only called after this method returns.
         }
 
         var keyDown = (e: KeyboardEvent) => {
@@ -75,10 +43,7 @@ setModuleImports("main.js", {
 
         canvas.addEventListener("keydown", keyDown, false);
         canvas.addEventListener("keyup", keyUp, false);
-        checkCanvasResize(true);
-        checkCanvasResizeFrame();
-
-        canvas.tabIndex = 1000;
+        step();
     },
 
     updateInput: () => {
@@ -86,10 +51,40 @@ setModuleImports("main.js", {
     },
 
     isKeyPressed: (key: string) => {
-        var res = !keyBoard.currKeys[key] && keyBoard.prevKeys[key];
-
-        return res;
+        return !keyBoard.currKeys[key] && keyBoard.prevKeys[key];
     }
 });
 
+//await runMain();
 await dotnet.run();
+
+function onResize(entries: ResizeObserverEntry[]) {
+    for (const entry of entries) {
+        let width;
+        let height;
+        let dpr = window.devicePixelRatio;
+        if (entry.devicePixelContentBoxSize) {
+            // NOTE: Only this path gives the correct answer
+            // The other paths are imperfect fallbacks
+            // for browsers that don't provide anyway to do this
+            width = entry.devicePixelContentBoxSize[0].inlineSize;
+            height = entry.devicePixelContentBoxSize[0].blockSize;
+            dpr = 1; // it's already in width and height
+        } else if (entry.contentBoxSize) {
+            if (entry.contentBoxSize[0]) {
+                width = entry.contentBoxSize[0].inlineSize;
+                height = entry.contentBoxSize[0].blockSize;
+            } else {
+                // but old versions of Firefox treat it as a single item
+                width = entry.contentBoxSize?.inlineSize;
+                height = entry.contentBoxSize?.blockSize;
+            }
+        } else {
+            width = entry.contentRect.width;
+            height = entry.contentRect.height;
+        }
+        const displayWidth = Math.round(width * dpr);
+        const displayHeight = Math.round(height * dpr);
+        interop?.OnCanvasResize(canvas.width, canvas.height);
+    }
+}

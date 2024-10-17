@@ -130,4 +130,7 @@
   <data name="px_effect" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\px_effect.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="px_cell" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\px_cell.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

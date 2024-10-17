@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.JavaScript;
 
-namespace WebGL.Sample;
+namespace SnakeWebGL;
 
 internal static partial class Interop
 {
@@ -33,10 +33,8 @@ internal static partial class Interop
     }
 
     [JSExport]
-    public static void OnCanvasResize(float width, float height, float devicePixelRatio)
+    public static void OnCanvasResize(float width, float height)
     {
-        Test.CanvasResized((int)width, (int)height);
+        Program.CanvasResized((int)width, (int)height);
     }
-
-    
 }

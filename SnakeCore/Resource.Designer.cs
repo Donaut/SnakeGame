@@ -73,6 +73,16 @@ namespace SnakeCore {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] px_cell {
+            get {
+                object obj = ResourceManager.GetObject("px_cell", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] px_die {
             get {
                 object obj = ResourceManager.GetObject("px_die", resourceCulture);
