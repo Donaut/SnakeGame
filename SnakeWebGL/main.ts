@@ -76,7 +76,9 @@ function onResize(entries: ResizeObserverEntry[]) {
                 height = entry.contentBoxSize[0].blockSize;
             } else {
                 // but old versions of Firefox treat it as a single item
+                // @ts-ignore
                 width = entry.contentBoxSize?.inlineSize;
+                // @ts-ignore
                 height = entry.contentBoxSize?.blockSize;
             }
         } else {

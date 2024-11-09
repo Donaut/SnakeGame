@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace SnakeWebGL;
 
-internal static class EGL
+internal static partial class EGL
 {
 	public const string LibEgl = "libEGL";
 	public const int EGL_NONE = 0x3038;
@@ -27,33 +27,33 @@ internal static class EGL
     public const int EGL_TRUE = 0x1;
     public const int EGL_CONTEXT_OPENGL_DEBUG = 0x31B0;
 
-    [DllImport(LibEgl, EntryPoint = "eglGetProcAddress", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [LibraryImport(LibEgl, EntryPoint = "eglGetProcAddress", StringMarshalling = StringMarshalling.Utf8)]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
-	public static extern IntPtr GetProcAddress(string proc);
+	public static partial nint GetProcAddress(string proc);
 
 	[DllImport(LibEgl, EntryPoint = "eglGetDisplay", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
 	public static extern IntPtr GetDisplay(IntPtr displayId);
 
-	[DllImport(LibEgl, EntryPoint = "eglInitialize", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+	[LibraryImport(LibEgl, EntryPoint = "eglInitialize")]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool Initialize(IntPtr display, out int major, out int minor);
+	public static partial bool Initialize(IntPtr display, out int major, out int minor);
 
 
-	[DllImport(LibEgl, EntryPoint = "eglChooseConfig", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+	[LibraryImport(LibEgl, EntryPoint = "eglChooseConfig")]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool ChooseConfig(IntPtr dpy, int[] attribList, ref IntPtr configs, IntPtr configSize/*fixed to 1*/, ref IntPtr numConfig);
+	public static partial bool ChooseConfig(IntPtr dpy, int[] attribList, ref IntPtr configs, IntPtr configSize/*fixed to 1*/, ref IntPtr numConfig);
 
 	[DllImport(LibEgl, EntryPoint = "eglBindAPI", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool BindApi(int api);
 
-	[DllImport(LibEgl, EntryPoint = "eglCreateContext", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+	[LibraryImport(LibEgl, EntryPoint = "eglCreateContext")]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
-	public static extern IntPtr CreateContext(IntPtr/*EGLDisplay*/ display, IntPtr/*EGLConfig*/ config, IntPtr shareContext, int[] attribList);
+	public static partial IntPtr CreateContext(IntPtr/*EGLDisplay*/ display, IntPtr/*EGLConfig*/ config, IntPtr shareContext, int[] attribList);
 
 	[DllImport(LibEgl, EntryPoint = "eglGetConfigAttrib", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
 	[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]

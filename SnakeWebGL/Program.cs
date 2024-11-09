@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Silk.NET.OpenGLES;
 using SnakeWebGL;
 
 [assembly: SupportedOSPlatform("browser")]
+[assembly: DisableRuntimeMarshalling]
 
 namespace SnakeWebGL;
 
@@ -62,7 +64,7 @@ public static class Program
 
     public static void Main(string[] args)
     {
-        Console.WriteLine($"Hello from dotnet!");
+        Console.WriteLine($"Hello from dotnet 9!");
 
         var display = EGL.GetDisplay(IntPtr.Zero);
         if (display == IntPtr.Zero)
@@ -118,7 +120,7 @@ public static class Program
         //_ = EGL.DestroySurface(display, surface);
         //_ = EGL.Terminate(display);
 
-        TrampolineFuncs.ApplyWorkaroundFixingInvocations();
+        //TrampolineFuncs.ApplyWorkaroundFixingInvocations();
         
         var gl = GL.GetApi(EGL.GetProcAddress);
         Interop.Initialize();
@@ -129,7 +131,7 @@ public static class Program
         unsafe
         {
             // https://emscripten.org/docs/api_reference/html5.h.html?highlight=emscripten_request_animation_frame#c.emscripten_request_animation_frame_loop
-            Emscripten.RequestAnimationFrameLoop((delegate* unmanaged<double, int, int>)&Frame, 10);
+            Emscripten.RequestAnimationFrameLoop((delegate* unmanaged<double, int, int>)&Frame, nint.Zero);
         }
     }
 }
