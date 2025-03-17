@@ -1,11 +1,11 @@
 ﻿using StbImageSharp;
 using System.Buffers;
+using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Resources;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace SnakeCore;
 
@@ -69,13 +69,15 @@ public class Game
 
     private StateUpdate? _stateUpdate;
 
-    private ImageHandle? _eyeImage;
-    private Rectangle _eyeAnimation1;
-    private Rectangle _eyeAnimation2;
+    //private ImageHandle? _eyeImage;
+    //private Rectangle _eyeAnimation1;
+    //private Rectangle _eyeAnimation2;
 
-    private ImageHandle? _eatImage;
+    //private ImageHandle? _eatImage;
     private ImageHandle? _cellImage;
 
+    private ImageHandle? _spriteSheet;
+    
     public int DesignWidth { get; } = 700;
 
     public int DesignHeight { get; } = 700;
@@ -87,17 +89,20 @@ public class Game
     /// </summary>
     public void Initialize(IRenderer renderer)
     {
-        var eyeImage = ImageResult.FromMemory(Resource.px_blink, ColorComponents.RedGreenBlueAlpha);
-        _eyeImage = renderer.CreateImage(eyeImage.Width, eyeImage.Height, eyeImage.Data);
+        //var eyeImage = ImageResult.FromMemory(Resource.px_blink, ColorComponents.RedGreenBlueAlpha);
+        //_eyeImage = renderer.CreateImage(eyeImage.Width, eyeImage.Height, eyeImage.Data);
 
-        _eyeAnimation1 = new Rectangle(20, 20, 40, 40);
-        _eyeAnimation2 = new Rectangle(20, 260, 40, 40);
+        //_eyeAnimation1 = new Rectangle(20, 20, 40, 40);
+        //_eyeAnimation2 = new Rectangle(20, 260, 40, 40);
 
-        var eatImage = ImageResult.FromMemory(Resource.px_eat, ColorComponents.RedGreenBlueAlpha);
-        _eatImage = renderer.CreateImage(eatImage.Width, eatImage.Height, eatImage.Data);
+        //var eatImage = ImageResult.FromMemory(Resource.px_eat, ColorComponents.RedGreenBlueAlpha);
+        //_eatImage = renderer.CreateImage(eatImage.Width, eatImage.Height, eatImage.Data);
 
         var cellImage = ImageResult.FromMemory(Resource.px_cell, ColorComponents.RedGreenBlueAlpha);
         _cellImage = renderer.CreateImage(1, 1, cellImage.Data);
+
+        var spriteSheet = ImageResult.FromMemory(Resource.px_snake, ColorComponents.RedGreenBlueAlpha);
+        _spriteSheet = renderer.CreateImage(spriteSheet.Width, spriteSheet.Height, spriteSheet.Data);
 
         var center = new Vector2(Width / 2, Height / 2);
         center = new Vector2(4, center.Y);
@@ -295,13 +300,18 @@ public class Game
 
     public void Update(float elapsedSeconds, Direction direction)
     {
+        //if(x != Task.Running)
+        //x = Animation.StartAnimation(ShakeAnimation, 100);
+
         _stateUpdate!(elapsedSeconds, direction);
     }
 
+    // WATCH OUT FOR DRAW ORDER!
     public void Draw(float elapsedSeconds, IRenderer renderer)
     {
-        // WATCH OUT FOR DRAW ORDER!
-
+        Debug.Assert(_cellImage != null);
+        Debug.Assert(_spriteSheet != null);
+        
         var tileSize = new Vector2(DesignWidth / Width, DesignHeight / Height);
         for(var x = 0; x < Width; x++)
         {
@@ -324,25 +334,116 @@ public class Game
         var headRotation = MathF.Atan2(_snakeHeadRotation.Y, _snakeHeadRotation.X);
 
         var tailFinal = (snake[^1] + _tailOffset) * tileSize;
-        renderer.DrawImage(_cellImage, tailFinal, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * snake.Count));
+        //renderer.DrawImage(_cellImage, tailFinal, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * snake.Count));
+        //renderer.DrawImage(_spriteSheet, tailFinal, tileSize, headRotation, Vector2.Zero, new Rectangle(0, 0, 37, 43), Color.White);
 
-        for (var i = 0; i < snake.Count - 1; i++)
+        for(var i = snake.Count - 1; i >= 1; i--)
         {
-            var body = snake[i];
-            renderer.DrawImage(_cellImage, body * tileSize, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * i));
+            var body = _snake[i];
+            var bodyDirection = _snake[i - 1] - body;
+            var bodyRotation = MathF.Atan2(bodyDirection.Y, bodyDirection.X);
+
+            var offset = tileSize / 2 * bodyDirection;
+
+            renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
+            renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2 + offset, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
         }
 
+        //for (var i = 0; i < snake.Count - 1; i++)
+        //{
+        //    var body = snake[i];
+        //    //renderer.DrawImage(_cellImage, body * tileSize, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * i));
+        //}
+
+
+        var headOrigin = new Vector2(18.5f, 21.5f);
         var direction = _currDirection.ToVector2();
         var neckFinal = Vector2.Lerp(head, head + direction, _t) * tileSize;
-        renderer.DrawImage(_cellImage, neckFinal, tileSize, 0, Vector2.Zero, snakeColor);
-        renderer.DrawImage(_cellImage, headFinal, tileSize, 0, Vector2.Zero, snakeColor);
+        //renderer.DrawImage(_cellImage, neckFinal, tileSize, 0, Vector2.Zero, snakeColor);
 
-        var eyeSize = tileSize / 2.5F;
-        var eyeRotation = headRotation;
-        var eyePosition1 = Vector2.Transform(Vector2.Zero, Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
-        var eyePosition2 = Vector2.Transform(new Vector2(0, tileSize.Y - eyeSize.Y), Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
+        //renderer.DrawImage(_cellImage, headFinal, tileSize, 0, Vector2.Zero, snakeColor);
+        renderer.DrawImage(_spriteSheet, headFinal + tileSize / 2, tileSize, headRotation, headOrigin, new Rectangle(0, 43, 37, 43), Color.White);
 
-        renderer.DrawImage(_eyeImage, eyePosition1, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
-        renderer.DrawImage(_eyeImage, eyePosition2, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
+        //var eyeSize = tileSize / 2.5F;
+        //var eyeRotation = headRotation;
+        //var eyePosition1 = Vector2.Transform(Vector2.Zero, Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
+        //var eyePosition2 = Vector2.Transform(new Vector2(0, tileSize.Y - eyeSize.Y), Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;
+
+        //renderer.DrawImage(_eyeImage, eyePosition1, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
+        //renderer.DrawImage(_eyeImage, eyePosition2, eyeSize, eyeRotation, Vector2.Zero, new Rectangle(20, 20, 40, 40), Color.White);
+    }
+
+    async ValueTask Animation() 
+    {
+        for (var i = 0; i < 10; i++)
+        {
+            // Shake animation
+            var xOffset = Random.Shared.NextSingle(-.1f, .1f);
+            var yOffset = Random.Shared.NextSingle(-.1f, .1f);
+            _shakeOffset = new Vector2(xOffset, yOffset);
+
+            await Task.Delay(16);       
+        }
+
+        for(var i = 0; i < 12; i++)
+        {
+            var currDirection = _lastDirection1.ToVector2();
+            var p0 = currDirection / 2;
+            var p1 = currDirection;
+            var tailDirection = _snake[^1] - _snake[^2];
+
+            _snakeHeadOffset = Vector2.Lerp(p0, p1, _goingBackRemaining1 / _goingBackStart1);
+            _tailOffset = -Vector2.Lerp(Vector2.Zero, tailDirection, _goingBackRemaining1 / _goingBackStart1);
+
+            await Task.Delay(16);
+        }
+
+        _snake.Add(_removedTail1);
+
+        _snakeHeadRotation = _lastDirection1.ToVector2();
+
+        // Copied from the next state!
+        var tailDirection1 = _snake[^1] - _snake[^2];
+        _tailOffset = -Vector2.Lerp(tailDirection1 / 2, tailDirection1, _goingBackRemaining2 / _goingBackStart2);
+
+
+        //if (_shakeDurationRemaining > 0)
+        //{
+        //    _shakeDurationRemaining -= elapsedSeconds;
+
+        //    var xOffset = Random.Shared.NextSingle(-.1f, .1f);
+        //    var yOffset = Random.Shared.NextSingle(-.1f, .1f);
+        //    _shakeOffset = new Vector2(xOffset, yOffset);
+
+        //    if (_shakeDurationRemaining <= 0)
+        //    {
+        //        // Initialize next state
+        //        ;
+        //    }
+        //}
+        //else if (_goingBackRemaining1 > 0)
+        //{
+        //    _goingBackRemaining1 -= elapsedSeconds;
+
+        //    var currDirection = _lastDirection1.ToVector2();
+        //    var p0 = currDirection / 2;
+        //    var p1 = currDirection;
+        //    var tailDirection = _snake[^1] - _snake[^2];
+
+        //    _snakeHeadOffset = Vector2.Lerp(p0, p1, _goingBackRemaining1 / _goingBackStart1);
+        //    _tailOffset = -Vector2.Lerp(Vector2.Zero, tailDirection, _goingBackRemaining1 / _goingBackStart1);
+
+        //    if (_goingBackRemaining1 <= 0)
+        //    {
+        //        // Initialize next state
+        //        _snake.Add(_removedTail1);
+
+        //        _snakeHeadRotation = _lastDirection1.ToVector2();
+
+        //        // Copied from the next state!
+        //        var tailDirection1 = _snake[^1] - _snake[^2];
+        //        _tailOffset = -Vector2.Lerp(tailDirection1 / 2, tailDirection1, _goingBackRemaining2 / _goingBackStart2);
+        //    }
+        //}
     }
 }
