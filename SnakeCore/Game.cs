@@ -1,4 +1,6 @@
-﻿using StbImageSharp;
+﻿using SnakeCore.Extensions;
+using SnakeCore.Internal;
+using StbImageSharp;
 using System.Buffers;
 using System.Collections;
 using System.Diagnostics;
@@ -8,8 +10,6 @@ using System.Numerics;
 using System.Resources;
 
 namespace SnakeCore;
-
-public delegate void StateUpdate(float elapsedSeconds, Direction direction);
 
 public class Game
 {
@@ -25,7 +25,8 @@ public class Game
     //private Direction _nextDirection = Direction.None;
 
     // Fields for the snake drawing
-    private Vector2 _snakeHeadOffset = Vector2.Zero;
+    //private Vector2 _snakeHeadOffset = Vector2.Zero;
+    private Vector2 _snakeHeadOffset = new Vector2(0, 0f);
     private Vector2 _snakeHeadRotation;
     private Vector2 _tailOffset = Vector2.Zero;
     private Vector2 _shakeOffset = Vector2.Zero;
@@ -65,10 +66,12 @@ public class Game
 
     public bool IsDead { get; protected set; }
 
-    public float Speed { get; set; } = 5;
+    public float Speed { get; set; } = 4;
 
-    private StateUpdate? _stateUpdate;
-
+    //private ValueTask _updateTask;
+    private Task _updateTask = Task.CompletedTask;
+    private GameState _gameState;
+    private GameStateSource _gameStateSource;
     //private ImageHandle? _eyeImage;
     //private Rectangle _eyeAnimation1;
     //private Rectangle _eyeAnimation2;
@@ -82,7 +85,16 @@ public class Game
 
     public int DesignHeight { get; } = 700;
 
-    public Game() { }
+    static Game()
+    {
+        SynchronizationContext.SetSynchronizationContext(new GameSynchronizationContext());
+    }
+
+    public Game() 
+    {        
+        _gameStateSource = new GameStateSource();
+        _gameState = new GameState(_gameStateSource);
+    }
 
     /// <summary>
     /// Resets the game. 
@@ -125,156 +137,6 @@ public class Game
 
         IsDead = false;
         Points = 0;
-
-        _stateUpdate = InGame;
-    }
-
-    void InGame(float elapsedSeconds, Direction direction)
-    {
-        if(_waitingForFirstInput
-            && direction != Direction.None
-            && _currDirection.Inverse() != direction)
-        {
-            _waitingForFirstInput = false;
-            _nextDirections.Add(direction);
-        }
-
-        if(_waitingForFirstInput)
-            return;
-
-
-        if(direction != Direction.None && !_nextDirections.Contains(direction) && _nextDirections.LastOrDefault(_currDirection) != direction.Inverse())
-        {
-            _nextDirections.Add(direction);
-        }
-
-        _t += elapsedSeconds / (1F / Speed);
-
-        if(_t >= 1)
-        {
-            var newHead = _snake[0] + _currDirection.ToVector2();
-
-            _lastDirection2 = _lastDirection1;
-            _lastDirection1 = _currDirection;
-
-            var previousRemovedTail = _removedTail2;
-            _removedTail2 = _removedTail1;
-            _removedTail1 = _snake[^1];
-
-            if(_nextDirections.Count > 0) // If no user input keep the last.
-            {
-                _currDirection = _nextDirections[0];
-                _nextDirections.RemoveAt(0);
-            }
-
-            _t = 0;
-
-            _snake.Insert(0, newHead);
-            _snake.RemoveAt(_snake.Count - 1);
-
-            var nextHead = newHead + _currDirection.ToVector2();
-            var isDead = false;
-            for(var i = 1; i < _snake.Count; i++)
-            {
-                if(_snake[i] == nextHead)
-                {
-                    isDead = true;
-                    break;
-                }
-            }
-            if(nextHead.X < 0 || nextHead.X > Width - 1 || nextHead.Y < 0 || nextHead.Y > Height - 1
-               || isDead)
-            {
-                _snake.RemoveAt(0);
-                _snake.Add(_removedTail1);
-
-                _removedTail1 = _removedTail2;
-                _removedTail2 = previousRemovedTail;
-
-                ChangeState(GoingBack);
-                return;
-            }
-        }
-
-        // Animation
-        var currDirection = _currDirection.ToVector2();
-        var nextDirection = (_nextDirections.Count > 0 ? _nextDirections[0] : _currDirection).ToVector2();
-
-        var p0 = currDirection / 2;
-        var p2 = currDirection + nextDirection / 2;
-        var p1 = currDirection;
-
-        var headOffset = Vector2Extensions.LerpQuadraticBezier(p0, p2, p1, _t);
-
-        _snakeHeadOffset = headOffset;
-        _snakeHeadRotation = nextDirection;
-
-        _tailOffset = Vector2.Lerp(Vector2.Zero, _snake[^2] - _snake[^1], _t);
-    }
-
-    void GoingBack(float elapsedSeconds, Direction direction)
-    {
-        if(_shakeDurationRemaining > 0)
-        {
-            _shakeDurationRemaining -= elapsedSeconds;
-
-            var xOffset = Random.Shared.NextSingle(-.1f, .1f);
-            var yOffset = Random.Shared.NextSingle(-.1f, .1f);
-            _shakeOffset = new Vector2(xOffset, yOffset);
-
-            if(_shakeDurationRemaining <= 0)
-            {
-                // Initialize next state
-                ;
-            }
-        }
-        else if(_goingBackRemaining1 > 0)
-        {
-            _goingBackRemaining1 -= elapsedSeconds;
-
-            var currDirection = _lastDirection1.ToVector2();
-            var p0 = currDirection / 2;
-            var p1 = currDirection;
-            var tailDirection = _snake[^1] - _snake[^2];
-
-            _snakeHeadOffset = Vector2.Lerp(p0, p1, _goingBackRemaining1 / _goingBackStart1);
-            _tailOffset = -Vector2.Lerp(Vector2.Zero, tailDirection, _goingBackRemaining1 / _goingBackStart1);
-
-            if(_goingBackRemaining1 <= 0)
-            {
-                // Initialize next state
-                _snake.Add(_removedTail1);
-
-                _snakeHeadRotation = _lastDirection1.ToVector2();
-
-                // Copied from the next state!
-                var tailDirection1 = _snake[^1] - _snake[^2];
-                _tailOffset = -Vector2.Lerp(tailDirection1 / 2, tailDirection1, _goingBackRemaining2 / _goingBackStart2);
-            }
-        }
-        else if(_goingBackRemaining2 > 0)
-        {
-            _goingBackRemaining2 -= elapsedSeconds;
-
-            var tailDirection = _snake[^1] - _snake[^2];
-            _tailOffset = -Vector2.Lerp(tailDirection / 2, tailDirection, _goingBackRemaining2 / _goingBackStart2);
-
-            if(_goingBackRemaining2 <= 0)
-            {
-                // Initialize next state
-                ;
-            }
-        }
-        else if(_waitingMenuRemaining > 0)
-        {
-            _waitingMenuRemaining -= elapsedSeconds;
-
-            if(_waitingMenuRemaining <= 0)
-            {
-                // Initialize next state
-                ;
-            }
-        }
     }
 
     void WaitingForMenu(float elapsedSeconds, Direction direction)
@@ -293,17 +155,139 @@ public class Game
         ;
     }
 
-    void ChangeState(StateUpdate update)
-    {
-        _stateUpdate = update;
-    }
-
     public void Update(float elapsedSeconds, Direction direction)
     {
-        //if(x != Task.Running)
-        //x = Animation.StartAnimation(ShakeAnimation, 100);
+        _gameStateSource.ElapsedSeconds = elapsedSeconds;
+        _gameStateSource.Direction = direction;
 
-        _stateUpdate!(elapsedSeconds, direction);
+        ArgumentNullException.ThrowIfNull(SynchronizationContext.Current);
+        ((GameSynchronizationContext)SynchronizationContext.Current).ExecutePostQueue();
+
+        if(_updateTask == null)
+        {
+            _updateTask = UpdateCore(_gameState);
+        }
+
+        if (_updateTask?.IsFaulted == true)
+        {
+            _updateTask.GetAwaiter().GetResult();
+        }
+        
+        if (_updateTask?.IsCompleted == true)
+        {
+            _updateTask = UpdateCore(_gameState);
+        }
+    }
+
+    protected async Task UpdateCore(GameState state)
+    {
+        while (state.Direction == Direction.None)
+        {
+            await Task.Yield();
+        }
+
+        _waitingForFirstInput = false;
+        _nextDirections.Add(state.Direction);
+
+        while (true)
+        {
+            var direction = state.Direction;
+            if (direction != Direction.None && !_nextDirections.Contains(direction) && _nextDirections.LastOrDefault(_currDirection) != direction.Inverse())
+            {
+                _nextDirections.Add(direction);
+            }
+
+            if (_t >= 1)
+            {
+                var newHead = _snake[0] + _currDirection.ToVector2();
+                //Debug.Assert(newHead.Length() <= 1);
+
+                _lastDirection2 = _lastDirection1;
+                _lastDirection1 = _currDirection;
+
+                var previousRemovedTail = _removedTail2;
+                _removedTail2 = _removedTail1;
+                _removedTail1 = _snake[^1];
+
+                if (_nextDirections.Count > 0) // If no user input keep the last.
+                {
+                    _currDirection = _nextDirections[0];
+                    _nextDirections.RemoveAt(0);
+                }
+
+                _t = 0;
+
+                _snake.Insert(0, newHead);
+                _snake.RemoveAt(_snake.Count - 1);
+
+                var nextHead = newHead + _currDirection.ToVector2();
+
+                var isDead = false;
+                for (var i = 1; i < _snake.Count; i++)
+                {
+                    if (_snake[i] == nextHead)
+                    {
+                        isDead = true;
+                        break;
+                    }
+                }
+                if (nextHead.X < 0 || nextHead.X > Width - 1 || nextHead.Y < 0 || nextHead.Y > Height - 1
+                   || isDead)
+                {
+                    _snake.RemoveAt(0);
+                    _snake.Add(_removedTail1);
+
+                    _removedTail1 = _removedTail2;
+                    _removedTail2 = previousRemovedTail;
+
+                    //await GoingBack(state);
+                    //return;
+                    //await GoingBack(state);
+                    //throw new NotImplementedException("Neeeeeeeeem igaaaaaz!");
+                }
+            }
+
+            // Animation
+            var currDirection = _currDirection.ToVector2();
+            var nextDirection = (_nextDirections.Count > 0 ? _nextDirections[0] : _currDirection).ToVector2();
+
+            
+
+
+            //Debug.Assert(currDirection.Length() <= 1);
+            //Debug.Assert(nextDirection.Length() <= 1);
+
+            var p0 = currDirection / 2;
+            var p2 = currDirection + nextDirection / 2;
+            var p1 = currDirection;
+
+            
+            //var headOffset = Vector2Extensions.LerpQuadraticBezier(p0, p2, p1, _t);
+            //var headOffset = Vector2.Lerp(Vector2.Zero, currDirection, _t);
+            var distance = Vector2Extensions.GetQuadraticBezierLength(p0, p2, p1, 100);
+
+            // TODO: Make speed interpolated. This sudden shifts are noticable and we can do better.
+            var shouldApplySpeedUp = currDirection != nextDirection;
+            var speed = shouldApplySpeedUp ? Speed / distance : Speed;
+            //_t += state.ElapsedSeconds / (1F / Speed);
+            _t += state.ElapsedSeconds / (1F / speed);
+
+            var headOffset = Vector2Extensions.LerpQuadraticBezier(p0, p2, p1, _t);
+
+            if(!shouldApplySpeedUp && distance != 1)
+            {
+                Debug.Fail("A");
+            }
+            //Debug.WriteLine(distance);
+            //Debug.Assert(_t >= 0 && _t <= 1);
+            //Debug.WriteLine(headOffset);
+            _snakeHeadOffset = headOffset;
+            _snakeHeadRotation = nextDirection;
+
+            _tailOffset = Vector2.Lerp(Vector2.Zero, _snake[^2] - _snake[^1], _t);
+
+            await Task.Yield();
+        }
     }
 
     // WATCH OUT FOR DRAW ORDER!
@@ -337,17 +321,17 @@ public class Game
         //renderer.DrawImage(_cellImage, tailFinal, tileSize, 0, Vector2.Zero, snakeColor.Dark(0.04f * snake.Count));
         //renderer.DrawImage(_spriteSheet, tailFinal, tileSize, headRotation, Vector2.Zero, new Rectangle(0, 0, 37, 43), Color.White);
 
-        for(var i = snake.Count - 1; i >= 1; i--)
-        {
-            var body = _snake[i];
-            var bodyDirection = _snake[i - 1] - body;
-            var bodyRotation = MathF.Atan2(bodyDirection.Y, bodyDirection.X);
+        //for(var i = snake.Count - 1; i >= 1; i--)
+        //{
+        //    var body = _snake[i];
+        //    var bodyDirection = _snake[i - 1] - body;
+        //    var bodyRotation = MathF.Atan2(bodyDirection.Y, bodyDirection.X);
 
-            var offset = tileSize / 2 * bodyDirection;
+        //    var offset = tileSize / 2 * bodyDirection;
 
-            renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
-            renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2 + offset, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
-        }
+        //    renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
+        //    renderer.DrawImage(_spriteSheet, body * tileSize + tileSize / 2 + offset, tileSize, bodyRotation, new Vector2(18.5f, 21.5f), new Rectangle(0, 0, 37, 43), Color.White);
+        //}
 
         //for (var i = 0; i < snake.Count - 1; i++)
         //{
@@ -358,12 +342,13 @@ public class Game
 
         var headOrigin = new Vector2(18.5f, 21.5f);
         var direction = _currDirection.ToVector2();
+        //Debug.Assert(direction.Length() < 1);
         var neckFinal = Vector2.Lerp(head, head + direction, _t) * tileSize;
         //renderer.DrawImage(_cellImage, neckFinal, tileSize, 0, Vector2.Zero, snakeColor);
-
+        //  
         //renderer.DrawImage(_cellImage, headFinal, tileSize, 0, Vector2.Zero, snakeColor);
-        renderer.DrawImage(_spriteSheet, headFinal + tileSize / 2, tileSize, headRotation, headOrigin, new Rectangle(0, 43, 37, 43), Color.White);
-
+        //renderer.DrawImage(_spriteSheet, headFinal + tileSize / 2, tileSize, headRotation, headOrigin, new Rectangle(0, 43, 37, 43), Color.White);
+        renderer.DrawImage(_cellImage, headFinal + tileSize / 2 + new Vector2(-5, -5), new Vector2(10, 10), 0, Vector2.Zero, Color.White);
         //var eyeSize = tileSize / 2.5F;
         //var eyeRotation = headRotation;
         //var eyePosition1 = Vector2.Transform(Vector2.Zero, Matrix3x2.CreateRotation(eyeRotation, tileSize / 2)) + headFinal;

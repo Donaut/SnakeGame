@@ -120,7 +120,7 @@ public static class Program
         //_ = EGL.DestroySurface(display, surface);
         //_ = EGL.Terminate(display);
 
-        //TrampolineFuncs.ApplyWorkaroundFixingInvocations();
+        TrampolineFuncs.ApplyWorkaroundFixingInvocations();
         
         var gl = GL.GetApi(EGL.GetProcAddress);
         Interop.Initialize();

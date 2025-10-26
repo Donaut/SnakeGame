@@ -9,6 +9,24 @@ using System.Runtime.InteropServices;
 
 namespace SnakeFNA
 {
+    public class TestScheduler : TaskScheduler
+    {
+        protected override IEnumerable<Task>? GetScheduledTasks()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void QueueTask(Task task)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     internal class MyFnaGame : Game
     {
         private readonly GraphicsDeviceManager _graphics;
@@ -21,6 +39,10 @@ namespace SnakeFNA
         [STAThread]
         static void Main(string[] args)
         {
+            //var canceledTask = Task.FromCanceled(new CancellationToken(true));
+            //var exceptionTask = Task.FromException(new Exception("Test"));
+            //var completedTask = Task.FromResult(true);
+
             using (var game = new MyFnaGame())
             {
                 game.Run();

@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace SnakeCore;
+namespace SnakeCore.Extensions;
 
 internal static class ColorExtensions
 {

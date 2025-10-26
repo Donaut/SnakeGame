@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 
-namespace SnakeCore;
+namespace SnakeCore.Extensions;
 
 internal static class IRendererExtensions
 {

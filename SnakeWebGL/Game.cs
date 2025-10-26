@@ -210,8 +210,11 @@ public class Game
             var rotationSin = MathF.Sin(rotation);
             var rotationCos = MathF.Cos(rotation);
 
-            float cornerX = -origin.X * size.X;
-            float cornerY = -origin.Y * size.Y;
+            var originX = origin.X / sourceW / (float)texture.Width;
+	        var originY = origin.Y / sourceH / (float)texture.Height;
+
+            float cornerX = -originX * size.X;
+            float cornerY = -originY * size.Y;
             vertices[0].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
@@ -222,8 +225,8 @@ public class Game
                 (rotationSin * cornerX) +
                 position.Y
             );
-            cornerX = (1.0f - origin.X) * size.X;
-            cornerY = -origin.Y * size.Y;
+            cornerX = (1.0f - originX) * size.X;
+            cornerY = -originY * size.Y;
             vertices[1].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
@@ -234,8 +237,8 @@ public class Game
                 (rotationSin * cornerX) +
                 position.Y
             );
-            cornerX = -origin.X * size.X;
-            cornerY = (1.0f - origin.Y) * size.Y;
+            cornerX = -originX * size.X;
+            cornerY = (1.0f - originY) * size.Y;
             vertices[2].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
@@ -248,8 +251,8 @@ public class Game
             );
 
 
-            cornerX = (1.0f - origin.X) * size.X;
-            cornerY = -origin.Y * size.Y;
+            cornerX = (1.0f - originX) * size.X;
+            cornerY = -originY * size.Y;
             vertices[3].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
@@ -260,8 +263,8 @@ public class Game
                 (rotationSin * cornerX) +
                 position.Y
             );
-            cornerX = (1.0f - origin.X) * size.X;
-            cornerY = (1.0f - origin.Y) * size.Y;
+            cornerX = (1.0f - originX) * size.X;
+            cornerY = (1.0f - originY) * size.Y;
             vertices[4].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
@@ -272,8 +275,8 @@ public class Game
                 (rotationSin * cornerX) +
                 position.Y
             );
-            cornerX = -origin.X * size.X;
-            cornerY = (1.0f - origin.Y) * size.Y;
+            cornerX = -originX * size.X;
+            cornerY = (1.0f - originY) * size.Y;
             vertices[5].Position.X = (
                 (-rotationSin * cornerY) +
                 (rotationCos * cornerX) +
